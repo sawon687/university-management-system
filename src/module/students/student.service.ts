@@ -1,9 +1,10 @@
-import { prisma } from '../../lib/pirsma';
-import { IStudentProfile } from './students.interface';
+import { prisma } from '../../lib/pirsma'
+import { IStudentProfile } from './students.interface'
+
 
 
 class StudentService{
- async updateProfileDB(paylaod:IStudentProfile){
+async updateProfileDB(paylaod:IStudentProfile){
     const {phone,gender,dateOfBirth,address,studentId}=paylaod
          
       const result= await prisma.studentProfile.upsert({where:{
@@ -27,6 +28,7 @@ class StudentService{
 
     return result
     }
+  
 }
 
 export default new StudentService()
