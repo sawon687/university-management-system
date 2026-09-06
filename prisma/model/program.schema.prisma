@@ -1,0 +1,19 @@
+
+// model Program {
+//   id           String   @id @default(uuid())
+//   name         String
+//   code         String   @unique
+
+//   departmentId String
+
+//   department   Department @relation(
+//     fields: [departmentId],
+//     references: [id]
+//   )
+
+//   students     Student[]
+// //   courses      Course[]
+
+//   createdAt    DateTime @default(now())
+//   updatedAt    DateTime @updatedAt
+// }

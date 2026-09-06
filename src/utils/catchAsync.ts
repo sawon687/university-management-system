@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import statusCode from "http-status-codes"
-export class BaseControoler{
+export class BaseController{
 
     protected handle(fn:Function){
-     async (req:Request,res:Response,next:NextFunction)=>{
+    return async (req:Request,res:Response,next:NextFunction)=>{
                    try {
-                            await fn(res,req)
+                            await fn(req,res)
+                            next()
       } catch (error) {
         
         return res.status(statusCode.INTERNAL_SERVER_ERROR).json({

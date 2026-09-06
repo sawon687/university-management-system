@@ -1,0 +1,17 @@
+enum Role {
+   STUDENT
+   INSTRUCTOR
+   ADMIN
+}
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  SUSPENDED
+  DROPPED
+}
+
+enum Gender { 
+    MALE
+    FEMALE
+}

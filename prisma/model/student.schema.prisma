@@ -1,0 +1,17 @@
+model Student {
+  id             String   @id @default(uuid())
+
+  name           String
+  email          String   @unique
+  password       String
+  emailVerified  Boolean @default(false)
+  role           Role @default(STUDENT)
+  status         StudentStatus @default(ACTIVE)
+ 
+   profile   StudentProfile?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+
+}
