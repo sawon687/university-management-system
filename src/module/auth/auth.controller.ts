@@ -3,6 +3,7 @@ import { BaseController } from '../../utils/catchAsync';
 import authService from './auth.service';
 import { sendResponse } from '../../utils/sendResponse';
 import statusCode from "http-status-codes"
+import { prisma } from '../../lib/pirsma';
 class AuthController extends BaseController{
     createStudent=this.handle(async(req:Request,res:Response)=>{
         const payload=req.body
@@ -18,7 +19,31 @@ class AuthController extends BaseController{
     })
 
        login=this.handle(async(req:Request,res:Response)=>{
-        
+         const payload=req.body
+         const result=await authService.loginDB(payload)
+
+         if (!result) {
+              throw new Error("User creation failed");
+           }
+    const { accessToken, refreshToken, user } = result;
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
+    });
+    sendResponse(res, {
+      success: true,
+      message: "user login  successfully",
+      status: statusCode.CREATED,
+      data: { accessToken, refreshToken, user },
+    });
     })
 
        me=this.handle(async(req:Request,res:Response)=>{

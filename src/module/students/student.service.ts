@@ -28,6 +28,18 @@ async updateProfileDB(paylaod:IStudentProfile){
 
     return result
     }
+
+ 
+    async getStudentProfile(id:string){
+        const result=await prisma.users.findUnique({where:{id},
+            include:{
+                studentProfile:true
+            }
+        })
+        return result
+    }
+
+
   
 }
 

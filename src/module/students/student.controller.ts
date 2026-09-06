@@ -8,7 +8,9 @@ import studentService from './student.service';
 class StudentController extends BaseController {
   
 updateme = this.handle(async (req: Request, res: Response) => {
- const paylaod = req.body;
+ const body = req.body;
+ const id=req.user?.id
+ const paylaod={...body, studentId:id}
     const studentProfile = await studentService.updateProfileDB(paylaod);
 
     sendResponse(res, {

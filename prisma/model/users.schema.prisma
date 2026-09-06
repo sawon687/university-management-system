@@ -1,4 +1,4 @@
-model Student {
+model Users{
   id             String   @id @default(uuid())
 
   name           String
@@ -8,7 +8,7 @@ model Student {
   role           Role @default(STUDENT)
   status         StudentStatus @default(ACTIVE)
  
-   profile   StudentProfile?
+   studentProfile   StudentProfile?
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

@@ -12,3 +12,8 @@ export interface IOtpSendPaylod{
     otp:string,
     email:string
 }
+
+export interface ILoging{
+    email:string,
+    password:string
+}

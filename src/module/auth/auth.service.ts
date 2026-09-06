@@ -1,5 +1,5 @@
 import { redisClient } from "../../lib/redis";
-import { IOtpSendPaylod, IStudent } from "./auth.interface";
+import { ILoging, IOtpSendPaylod, IStudent } from "./auth.interface";
 import randomInt from "random-int";
 import bcrypt from "bcrypt";
 import config from "../../config";
@@ -8,11 +8,13 @@ import { Role, StudentStatus } from "../../../generated/prisma/enums";
 import ejs from "ejs";
 import path from "node:path";
 import { transporter } from "../../lib/nodemiler";
+import { jwtUtils } from '../../utils/jwt';
+import { SignOptions } from 'jsonwebtoken';
 
 class AuthService {
   async createDB(payload: IStudent) {
     console.log("paylaod", payload);
-    const userExits = await prisma.student.findUnique({
+    const userExits = await prisma.users.findUnique({
       where: { email: payload.email },
     });
     if (userExits) {
@@ -58,7 +60,7 @@ class AuthService {
 
   async verifayAccountDB(paylaod: IOtpSendPaylod) {
     const { email, otp } = paylaod;
-    const userExits = await prisma.student.findUnique({ where: { email } });
+    const userExits = await prisma.users.findUnique({ where: { email } });
 
     const otpkey = `otpkey:${email}`;
     const userKey = `studentKey:${email}`;
@@ -79,7 +81,7 @@ class AuthService {
       throw new Error("User registration data not found or expired");
     }
     const userPayload: IStudent = JSON.parse(RedisUserPayload);
-    const result = await prisma.student.create({
+    const result = await prisma.users.create({
       data: {
         name: userPayload.name,
         email: userPayload.email,
@@ -105,7 +107,49 @@ class AuthService {
     return result;
   }
 
-  async loginDB() {}
+  async loginDB(paylaod:ILoging) {
+     const {password,email}=paylaod
+
+     const userExits=await prisma.users.findUnique({where:{
+       email
+     }})
+
+     if(!userExits)
+     {
+       throw new Error('User not Found Pleace try Again')
+     }
+        
+
+     const passwordMatch=await bcrypt.compare(password,userExits.password)
+
+     if(!passwordMatch)
+     {
+      throw new Error('Password Dosenot Match!Pleacce try again')
+     }
+
+      const jwtpayload = {
+          id: userExits.id,
+          name: userExits.name,
+          email: userExits.email,
+          role: userExits.role,
+        };
+         console.log('acess secrete',config.accessSecret,'refressecret',config.refreshSecret)
+         console.log('expres acces',config.jwt_access_Expires,'refresh secret',config.jwt_refresh_Expires)
+        const accessToken = jwtUtils.createToken(
+          jwtpayload,
+          config.accessSecret,
+          { expiresIn: config.jwt_access_Expires } as SignOptions,
+        );
+        const refreshToken = jwtUtils.createToken(
+          jwtpayload,
+          config.refreshSecret,
+          { expiresIn: config.jwt_refresh_Expires } as SignOptions,
+
+          
+        );
+        console.log('accessToken',accessToken,'refreshToken',refreshToken)
+         return { accessToken, refreshToken,user:userExits };
+  }
   async getMeDB() {}
 }
 
