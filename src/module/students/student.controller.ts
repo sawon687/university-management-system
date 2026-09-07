@@ -19,10 +19,24 @@ updateme = this.handle(async (req: Request, res: Response) => {
       success: true,
       data: studentProfile,
     });
-  
+
 
   
 })
+
+
+    getStudentProfile=this.handle(async(req:Request,res:Response)=>{
+        const id=req.user?.id as string
+
+        const result=await studentService.getStudentProfile(id)
+           sendResponse(res, {
+      message: "profile found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+    })
+  
 
 }
 

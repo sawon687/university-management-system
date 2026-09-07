@@ -1,19 +1,22 @@
+model Program {
+  id           String   @id @default(uuid())
+  departmentId String @unique
 
-// model Program {
-//   id           String   @id @default(uuid())
-//   name         String
-//   code         String   @unique
+  name         String
+  code         String   @unique
+  degreeType   String
+  duration     Int
+  totalCredits Float
 
-//   departmentId String
+  description  String?
+  admissionFee Float?
+  tuitionFee   Float?
+  isActive     Boolean  @default(true)
 
-//   department   Department @relation(
-//     fields: [departmentId],
-//     references: [id]
-//   )
+  department   Department @relation(fields: [departmentId], references: [id])
+  courses      Course[]
+  applications AdmissionApplication[]
 
-//   students     Student[]
-// //   courses      Course[]
-
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-// }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

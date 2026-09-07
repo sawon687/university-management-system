@@ -18,6 +18,10 @@ const config = {
   redis_host:process.env.REDISHOST!,
   redis_port:process.env.REDISPORT!,
   smt_user:process.env.SMT_USER!,
-  smt_password:process.env.SMT_PASSWORD!
+  smt_password:process.env.SMT_PASSWORD!,
+  admin_name:process.env.ADMIN_NAME!,
+  admin_password:process.env.ADMIN_PASSWORD!,
+  admin_email:process.env.ADMIN_EMAIL!
+
 };
 export default config;

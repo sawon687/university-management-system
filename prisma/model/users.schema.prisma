@@ -3,15 +3,15 @@ model Users{
 
   name           String
   email          String   @unique
-  password       String
+  password       String?
   emailVerified  Boolean @default(false)
   role           Role @default(STUDENT)
-  status         StudentStatus @default(ACTIVE)
+  status         StudentStatus @default(PENDING)
  
    studentProfile   StudentProfile?
-
+    teacherProfile     TeacherProfile?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
+  application    AdmissionApplication?
 
 }

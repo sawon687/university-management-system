@@ -1,16 +1,17 @@
 model StudentProfile {
-  id           String   @id @default(ulid())
+  id           String     @id @default(ulid())
   phone        String
   dateOfBirth  String
   gender       String
   address      String
   profilePhoto String?
-
-  studentId    String   @unique
-  user     Users @relation(fields: [studentId], references: [id], onDelete:Cascade)
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  studentIDNO  String     @unique
+  studentId    String     @unique
+  user         Users      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  departmentId String     
+  department   Department @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   @@map("studentProfile")
 }

@@ -25,7 +25,7 @@ class AuthController extends BaseController{
          if (!result) {
               throw new Error("User creation failed");
            }
-    const { accessToken, refreshToken, user } = result;
+    const { accessToken, refreshToken } = result;
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
@@ -42,7 +42,7 @@ class AuthController extends BaseController{
       success: true,
       message: "user login  successfully",
       status: statusCode.CREATED,
-      data: { accessToken, refreshToken, user },
+      data: { accessToken, refreshToken },
     });
     })
 

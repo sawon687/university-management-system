@@ -1,9 +1,10 @@
 enum Role {
    STUDENT
-   INSTRUCTOR
+   TEACHER
    ADMIN
 }
 enum StudentStatus {
+  PENDING
   ACTIVE
   INACTIVE
   GRADUATED
@@ -14,4 +15,11 @@ enum StudentStatus {
 enum Gender { 
     MALE
     FEMALE
+}
+
+enum AdmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
 }

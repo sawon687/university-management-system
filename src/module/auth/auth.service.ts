@@ -1,5 +1,5 @@
 import { redisClient } from "../../lib/redis";
-import { ILoging, IOtpSendPaylod, IStudent } from "./auth.interface";
+import { ILoging, IOtpSendPaylod, IUser} from "./auth.interface";
 import randomInt from "random-int";
 import bcrypt from "bcrypt";
 import config from "../../config";
@@ -12,7 +12,7 @@ import { jwtUtils } from '../../utils/jwt';
 import { SignOptions } from 'jsonwebtoken';
 
 class AuthService {
-  async createDB(payload: IStudent) {
+  async createDB(payload:IUser) {
     console.log("paylaod", payload);
     const userExits = await prisma.users.findUnique({
       where: { email: payload.email },
@@ -80,7 +80,7 @@ class AuthService {
     if (!RedisUserPayload) {
       throw new Error("User registration data not found or expired");
     }
-    const userPayload: IStudent = JSON.parse(RedisUserPayload);
+    const userPayload: IUser = JSON.parse(RedisUserPayload);
     const result = await prisma.users.create({
       data: {
         name: userPayload.name,
@@ -112,6 +112,8 @@ class AuthService {
 
      const userExits=await prisma.users.findUnique({where:{
        email
+     },omit:{
+     
      }})
 
      if(!userExits)
@@ -119,6 +121,10 @@ class AuthService {
        throw new Error('User not Found Pleace try Again')
      }
         
+
+     if (!userExits.password) {
+       throw new Error('User password is not set')
+     }
 
      const passwordMatch=await bcrypt.compare(password,userExits.password)
 
@@ -133,8 +139,7 @@ class AuthService {
           email: userExits.email,
           role: userExits.role,
         };
-         console.log('acess secrete',config.accessSecret,'refressecret',config.refreshSecret)
-         console.log('expres acces',config.jwt_access_Expires,'refresh secret',config.jwt_refresh_Expires)
+         
         const accessToken = jwtUtils.createToken(
           jwtpayload,
           config.accessSecret,
@@ -148,7 +153,8 @@ class AuthService {
           
         );
         console.log('accessToken',accessToken,'refreshToken',refreshToken)
-         return { accessToken, refreshToken,user:userExits };
+        
+         return { accessToken, refreshToken };
   }
   async getMeDB() {}
 }

@@ -1,0 +1,23 @@
+model TeacherProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  teacherCode    String   @unique
+  departmentId   String
+
+  phone          String?
+  gender         String?
+  dateOfBirth    DateTime?
+  address        String?
+  designation    String?
+  bio            String?
+  specialization String?
+  qualification  String?
+  experience     String?
+  profilePhoto   String?
+
+  user           Users      @relation(fields: [userId], references: [id],onDelete: Cascade)
+  department     Department @relation(fields: [departmentId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

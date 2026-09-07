@@ -34,7 +34,11 @@ async updateProfileDB(paylaod:IStudentProfile){
         const result=await prisma.users.findUnique({where:{id},
             include:{
                 studentProfile:true
+            },
+            omit:{
+                password:true
             }
+            
         })
         return result
     }

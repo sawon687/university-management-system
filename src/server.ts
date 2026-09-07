@@ -4,6 +4,7 @@ import config from './config';
 import { transporter } from './lib/nodemiler';
 import { prisma } from './lib/pirsma';
 import { redisClient } from './lib/redis';
+import { adminSeed } from './utils/seed';
 
 
 
@@ -13,7 +14,7 @@ async function main() {
       try {
          await prisma.$connect()
          console.log('database is connect postgress')
-         console.log(config.redis_password,'passwornd',config.redis_user)
+          adminSeed()
          await redisClient.connect()
          console.log('redis is connected successfully')
          await transporter.verify()
