@@ -1,4 +1,4 @@
-import { Role } from '../../generated/prisma/enums'
+import { Role, UserStatus } from '../../generated/prisma/enums'
 import config from '../config';
 import { prisma } from '../lib/pirsma'
 import bcrypt from "bcrypt"
@@ -28,7 +28,8 @@ export const adminSeed=async()=>{
             name,
             email,
             password:passwordHash,
-            role:Role.ADMIN,
+            role:Role.SUPER_ADMIN,
+            status:UserStatus.ACTIVE,
             emailVerified:true
         }})
         

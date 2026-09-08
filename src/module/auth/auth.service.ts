@@ -62,8 +62,8 @@ class AuthService {
     const { email, otp } = paylaod;
     const userExits = await prisma.users.findUnique({ where: { email } });
 
-    const otpkey = `otpkey:${email}`;
-    const userKey = `studentKey:${email}`;
+    const otpkey = `otpkey:${email.trim()}`;
+    const userKey = `studentKey:${email.trim()}`;
     const redisOtp = await redisClient.get(otpkey);
     if (!otp) {
       throw new Error("Invalid Otp");
@@ -100,7 +100,7 @@ class AuthService {
  
     await transporter.sendMail({
       from:config.smt_user,
-      to:result.email,
+      to:result.email.trim(),
       subject:'Welcome to UniSphere',
       html
     })

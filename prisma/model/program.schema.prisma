@@ -7,12 +7,14 @@ model Program {
   degreeType   String
   duration     Int
   totalCredits Float
-
-  description  String?
-  admissionFee Float?
-  tuitionFee   Float?
+  semester      Int
+  semesterType   SemesterType
+  description  String
+  admissionFee Float
+  tuitionFee   Float
   isActive     Boolean  @default(true)
-
+  perCreditFee Float
+  totalFee     Float
   department   Department @relation(fields: [departmentId], references: [id])
   courses      Course[]
   applications AdmissionApplication[]

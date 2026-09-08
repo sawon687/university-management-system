@@ -36,6 +36,21 @@ updateme = this.handle(async (req: Request, res: Response) => {
       data: result,
     });
     })
+
+    admissionApplication=this.handle(async(req:Request,res:Response)=>{
+            const body=req.body
+            const userId=req.user?.id
+
+            const paylaod={...body,userId}
+
+                const result=await studentService.admissionApplicationDB(paylaod)
+           sendResponse(res, {
+      message: "profile found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+    })
   
 
 }

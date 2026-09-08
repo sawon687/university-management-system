@@ -1,7 +1,10 @@
 enum Role {
-   STUDENT
-   TEACHER
-   ADMIN
+  STUDENT
+  INSTRUCTOR
+  DEPARTMENT_ADMIN
+  REGISTRAR
+  FINANCE_ADMIN
+  SUPER_ADMIN
 }
 enum StudentStatus {
   PENDING
@@ -10,6 +13,12 @@ enum StudentStatus {
   GRADUATED
   SUSPENDED
   DROPPED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
 }
 
 enum Gender { 
@@ -22,4 +31,11 @@ enum AdmissionStatus {
   UNDER_REVIEW
   ACCEPTED
   REJECTED
+  PAID
+}
+
+
+enum SemesterType {
+  TRI_SEMESTER
+  BI_SEMESTER
 }

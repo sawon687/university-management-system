@@ -6,8 +6,9 @@ model Department {
 
   students    StudentProfile[]
   teachers    TeacherProfile[]
-  program     Program?
+  program     Program[]
   course      Course[]
+  user        Users[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

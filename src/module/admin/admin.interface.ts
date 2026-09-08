@@ -1,4 +1,4 @@
-import { Gender } from '../../../generated/prisma/enums';
+import { Gender, SemesterType } from '../../../generated/prisma/enums';
 
 export interface IDepartment {
   name: string;
@@ -11,5 +11,34 @@ export interface ITeacher{
   email:string,
   departmentId: string, 
   gender:Gender
+  
+}
+
+export interface IProgram {
+  
+  departmentId: string;
+  name: string;
+  code: string;
+  semester:number   
+  semesterType:SemesterType
+  degreeType: string;
+  duration: number;
+  totalCredits: number;
+  description: string;
+  admissionFee: number;
+  tuitionFee: number;
+  isActive: boolean;
+  perCreditFee:number
+  totalFee:number
+  
+}
+
+ 
+export interface ICourse{
+  title:string,
+  code:string,
+   description:string
+    departmentId:string
+     programId:string
   
 }

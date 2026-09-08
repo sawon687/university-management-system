@@ -8,6 +8,6 @@ const router=Router()
 
 router.patch('/me',auth("STUDENT"),studentController.updateme)
 router.get('/me',auth('STUDENT'),studentController.getStudentProfile)
-
+router.post('/application-admission',auth("STUDENT"),studentController.admissionApplication)
 
 export const studentRouter=router
