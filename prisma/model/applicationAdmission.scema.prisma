@@ -1,6 +1,6 @@
 model AdmissionApplication {
   id                  String          @id @default(uuid())
-  userId              String          @unique
+  userId              String          
   programId           String
 
 

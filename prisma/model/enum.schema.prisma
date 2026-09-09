@@ -39,3 +39,10 @@ enum SemesterType {
   TRI_SEMESTER
   BI_SEMESTER
 }
+
+enum DegreeType {
+  BSC
+  MSC
+  BBA
+  MBA
+}

@@ -1,4 +1,4 @@
-import { Gender, SemesterType } from '../../../generated/prisma/enums';
+import { Gender, Role, SemesterType, StudentStatus } from '../../../generated/prisma/enums';
 
 export interface IDepartment {
   name: string;
@@ -40,5 +40,12 @@ export interface ICourse{
    description:string
     departmentId:string
      programId:string
+       credit :number
   
+}
+
+export interface Query{
+    role:Role,
+    status:StudentStatus
+
 }

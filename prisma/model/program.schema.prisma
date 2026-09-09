@@ -4,7 +4,7 @@ model Program {
 
   name         String
   code         String   @unique
-  degreeType   String
+  degreeType   DegreeType
   duration     Int
   totalCredits Float
   semester      Int

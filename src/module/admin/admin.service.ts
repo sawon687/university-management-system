@@ -1,10 +1,21 @@
-import { AdmissionStatus, Gender, Role } from "../../../generated/prisma/enums";
+import {
+  AdmissionStatus,
+  Gender,
+  Role,
+  UserStatus,
+} from "../../../generated/prisma/enums";
+import { UsersWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
-import { IUser } from "../auth/auth.interface";
-import { IDepartment, IProgram, ITeacher } from "./admin.interface";
+import {
+  ICourse,
+  IDepartment,
+  IProgram,
+  ITeacher,
+  Query,
+} from "./admin.interface";
 import crypto from "crypto";
-class Admin {
+class AdminService {
   async createDepartmentDB(payload: IDepartment) {
     const { name, code, description } = payload;
     const departmentExits = await prisma.department.findUnique({
@@ -22,6 +33,25 @@ class Admin {
       },
     });
 
+    return result;
+  }
+
+
+  async getALLDepartmentDB(){
+    const result=await prisma.department.findMany()
+    return result
+  }
+
+  async getAllUserDB(queray: Query) {
+    const { role, status } = queray;
+    const whereQuery: UsersWhereInput = {};
+    if (role) {
+      whereQuery.role = role;
+    }
+    if (status) {
+      whereQuery.status = status;
+    }
+    const result = await prisma.users.findMany({ where: whereQuery });
     return result;
   }
 
@@ -106,21 +136,47 @@ class Admin {
 
     return result;
   }
-  async updateStatusApplicationDB(id: string, status:AdmissionStatus) {
+  async updateStatusApplicationDB(id: string, status: AdmissionStatus) {
     const result = await prisma.admissionApplication.update({
       where: { id },
       data: { status },
     });
-    return result
+    return result;
   }
 
-  //   async createCourse(payload) {
+  async updateStatusUserDB(id: string, status: UserStatus) {
+    if (!status) {
+      throw new Error("status is empty");
+    }
+    const result = await prisma.users.update({
+      where: { id },
+      data: {
+        status,
+      },
+    });
+    return result;
+  }
 
-  //   const result = await prisma.course.create({
-      
-  //   });
-  //   return result
-  // }
+  async createCourseDB(payload: ICourse) {
+    const { code, departmentId, description, title, programId, credit } =
+      payload;
+  const exitCourse=await prisma.course.findUnique({where:{code}})
+  if(exitCourse)
+  {
+     throw new Error('This course is already add')
+  }
+    const result = await prisma.course.create({
+      data: {
+        departmentId,
+        code,
+        description,
+        title,
+        programId,
+        credit,
+      },
+    });
+    return result;
+  }
 }
 
-export default new Admin();
+export default new AdminService();
