@@ -1,7 +1,7 @@
 model Course {
   id           String     @id @default(uuid())
-  title        String
-  code         String     @unique
+  title        String       //Corse title
+  code         String     @unique //Corse code look like cse cse-201
   description  String
   credit       Float
   departmentId String
@@ -11,6 +11,8 @@ model Course {
   program     Program @relation(fields: [programId], references: [id],onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  prerequisites  PrerequisiteCourse[] @relation("CoursePrerequisites")
+  prerequisiteFor PrerequisiteCourse[] @relation("PrerequisiteForCourses")
   @@index([programId])
   @@index([departmentId])
   @@index([code])

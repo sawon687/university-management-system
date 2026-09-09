@@ -4,14 +4,20 @@ import {
   Role,
   UserStatus,
 } from "../../../generated/prisma/enums";
-import { UsersWhereInput } from "../../../generated/prisma/models";
+import {
+  SemesterUpdateInput,
+  UsersWhereInput,
+} from "../../../generated/prisma/models";
 import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
 import {
   ICourse,
+  ICreatePrerequisite,
   IDepartment,
   IProgram,
+  ISemester,
   ITeacher,
+  IUpdateSemester,
   Query,
 } from "./admin.interface";
 import crypto from "crypto";
@@ -36,10 +42,9 @@ class AdminService {
     return result;
   }
 
-
-  async getALLDepartmentDB(){
-    const result=await prisma.department.findMany()
-    return result
+  async getALLDepartmentDB() {
+    const result = await prisma.department.findMany();
+    return result;
   }
 
   async getAllUserDB(queray: Query) {
@@ -160,11 +165,10 @@ class AdminService {
   async createCourseDB(payload: ICourse) {
     const { code, departmentId, description, title, programId, credit } =
       payload;
-  const exitCourse=await prisma.course.findUnique({where:{code}})
-  if(exitCourse)
-  {
-     throw new Error('This course is already add')
-  }
+    const exitCourse = await prisma.course.findUnique({ where: { code } });
+    if (exitCourse) {
+      throw new Error("This course is already add");
+    }
     const result = await prisma.course.create({
       data: {
         departmentId,
@@ -175,6 +179,50 @@ class AdminService {
         credit,
       },
     });
+    return result;
+  }
+  async createPrerequisiteDB(paylaod: ICreatePrerequisite) {
+    const { courseId, prerequisiteCourseId } = paylaod;
+    const result = await prisma.prerequisiteCourse.create({
+      data: {
+        courseId,
+        prerequisiteCourseId,
+      },
+    });
+    return result;
+  }
+
+  async createSemesterDB(paylaod: ISemester) {
+    const { name, year, code, startDate, endDate } = paylaod;
+    const result = await prisma.semester.create({
+      data: {
+        name,
+        year,
+        code,
+        startDate,
+        endDate,
+      },
+    });
+    return result;
+  }
+
+  async updateSemesterDB(paylaod: IUpdateSemester, id: string) {
+    const { startDate, endDate, registrationOpen } = paylaod;
+    const whereSemesterUpdte: SemesterUpdateInput = {};
+    if (startDate) {
+      whereSemesterUpdte.startDate = startDate;
+    }
+    if (endDate) {
+      whereSemesterUpdte.endDate = endDate;
+    }
+    if (registrationOpen) {
+      whereSemesterUpdte.registrationOpen = registrationOpen;
+    }
+    const result = await prisma.semester.update({
+      where: { id },
+      data: whereSemesterUpdte,
+    });
+
     return result;
   }
 }

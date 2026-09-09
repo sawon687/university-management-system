@@ -1,4 +1,4 @@
-import { Gender, Role, SemesterType, StudentStatus } from '../../../generated/prisma/enums';
+import { Gender, Role, SemesterCode, SemesterType, StudentStatus } from '../../../generated/prisma/enums';
 
 export interface IDepartment {
   name: string;
@@ -48,4 +48,25 @@ export interface Query{
     role:Role,
     status:StudentStatus
 
+}
+
+export interface  ICreatePrerequisite{
+  courseId:string,
+ prerequisiteCourseId:string,
+}
+
+export interface ISemester{
+
+  name:string      
+  code:SemesterCode             
+  year:number            
+
+  startDate:string
+  endDate:string
+}
+
+export interface IUpdateSemester{
+   startDate?:string
+  endDate?:string
+  registrationOpen?:boolean
 }

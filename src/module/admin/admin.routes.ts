@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { auth } from '../../midileware/auth';
+
 import adminController from './admin.controller';
 
 
@@ -15,7 +15,11 @@ router.get('/department',adminController.getAllDepartment)
 router.get('/users',adminController.getAllUser)
 router.patch('/users/:id/status',adminController.updateStatus)
 router.post('/create-course',adminController.createCourse)
-// router.post('/course')
+router.post('/create-prerequisite', adminController.createPrerequisite)
+router.post('/create-semester',adminController.createSemester)
+router.patch('/update-semester/:id',adminController.updateSemester)
+
+
 
 
 export const adminRouter=router

@@ -46,3 +46,9 @@ enum DegreeType {
   BBA
   MBA
 }
+
+enum SemesterCode {
+  SPRING
+  SUMMER
+  FALL
+}
