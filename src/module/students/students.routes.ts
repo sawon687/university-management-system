@@ -3,11 +3,11 @@ import studentController from './student.controller';
 import { auth } from '../../midileware/auth';
 
 
-
 const router=Router()
 
 router.patch('/me',auth("STUDENT"),studentController.updateme)
 router.get('/me',auth('STUDENT'),studentController.getStudentProfile)
 router.post('/application-admission',auth("STUDENT"),studentController.admissionApplication)
+router.get('/all-Program',studentController.getAllProgramg)
 
 export const studentRouter=router

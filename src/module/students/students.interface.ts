@@ -1,4 +1,7 @@
-import { AdmissionApplication, AdmissionStatus } from '../../../generated/prisma/client';
+import {
+  AdmissionApplication,
+  AdmissionStatus,
+} from "../../../generated/prisma/client";
 
 export interface IStudentProfile {
   phone: string;
@@ -15,5 +18,12 @@ export interface IAdmissionApplication {
   sscResult?: number;
   hscResult?: number;
   diplomaResult?: number;
+}
 
+export interface IqueryProgram {
+  programType?: string;
+  search?: string;
+  department?: string;
+  degreeType?: string;
+  page?: string;
 }

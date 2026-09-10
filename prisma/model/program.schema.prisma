@@ -1,9 +1,9 @@
 model Program {
   id           String   @id @default(uuid())
-  departmentId String @unique
+  departmentId String 
 
   name         String
-  code         String   @unique
+  code         ProgramType   @unique
   degreeType   DegreeType
   duration     Int
   totalCredits Float
@@ -21,4 +21,8 @@ model Program {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  @@index([departmentId])
+  @@index([degreeType])
+  @@index([name])
+ 
 }

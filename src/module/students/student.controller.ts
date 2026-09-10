@@ -52,6 +52,17 @@ updateme = this.handle(async (req: Request, res: Response) => {
     });
     })
   
+    getAllProgramg=this.handle(async(req:Request,res:Response)=>{
+      const queray=req.query
+        const result=await studentService.getAllProgram(queray)
+
+                   sendResponse(res, {
+      message: "program found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+    })
 
 }
 

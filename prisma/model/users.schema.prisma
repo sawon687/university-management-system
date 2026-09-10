@@ -11,6 +11,7 @@ model Users{
    studentProfile   StudentProfile?
     teacherProfile     TeacherProfile?
     departmentId      String?
+    isEnrolled        Boolean?
     department         Department? @relation(fields: [departmentId],references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
