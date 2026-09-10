@@ -135,6 +135,30 @@ class Admin extends BaseController {
       data: result,
     });
   })
+
+  getAllStudenApplication=this.handle(async(req:Request,res:Response)=>{
+         const result=await adminService.getllStudentApplicationDB()
+
+       sendResponse(res, {
+      message: `Update create is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  })
+
+  // admisstionStatusUpdate=this.handle(async(req:Request,res:Response)=>{
+  //   const id=req.params?.id as string
+  //   const status=req.body?.status as string
+  //    const result=await adminService.admissionUpdateApplication(status,id)
+
+  //          sendResponse(res, {
+  //     message: `Update ${status.toLowerCase()} is successfully`,
+  //     status: statusCode.OK,
+  //     success: true,
+  //     data: result,
+  //   });
+  // })
 }
 
 export default new Admin();

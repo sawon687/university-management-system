@@ -18,6 +18,7 @@ router.post('/create-course',adminController.createCourse)
 router.post('/create-prerequisite', adminController.createPrerequisite)
 router.post('/create-semester',adminController.createSemester)
 router.patch('/update-semester/:id',adminController.updateSemester)
+router.get('/studentadmissionsApplication',adminController.getAllStudenApplication)
 
 
 

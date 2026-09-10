@@ -1,9 +1,7 @@
 import { randomInt } from "crypto";
 import {
-  AdmissionApplication,
   AdmissionStatus,
-  DegreeType,
-  ProgramType,
+  DegreeType
 } from "../../../generated/prisma/client";
 import {
   AdmissionApplicationWhereInput,
@@ -25,13 +23,11 @@ class StudentService {
       dateOfBirth,
       address,
       studentId,
-      studentIDNO,
       departmentId,
     } = paylaod as IStudentProfile & {
-      studentIDNO: string;
       departmentId: string;
     };
-    const deparmentIdno = `stu-${randomInt(8)}`;
+  
     const result = await prisma.studentProfile.upsert({
       where: {
         studentId,
@@ -42,7 +38,6 @@ class StudentService {
         dateOfBirth,
         address,
         studentId,
-        studentIDNO: deparmentIdno,
         departmentId,
       },
       update: {
@@ -97,13 +92,12 @@ class StudentService {
   }
 
   async getAllProgram(query: IqueryProgram) {
-    const { programType, search, department, degreeType, page } = query;
+    const {  search, department, degreeType, page } = query;
 
     const whereProgramCondition: ProgramWhereInput = {};
 
     const searchNormalization = search?.trim() ?? null;
     const departmentNormalization = department?.trim() ?? null;
-    const programTypeNormalization = programType?.trim() ?? null;
     const degreeTypeNormalization = degreeType?.trim() ?? null;
 
     // Search: Program name + Department name
@@ -129,19 +123,15 @@ class StudentService {
     // Department filter
     if (departmentNormalization && departmentNormalization !== "All") {
       whereProgramCondition.department = {
-        name: departmentNormalization,
+        code: departmentNormalization,
       };
     }
 
     // Degree type filter
     if (degreeTypeNormalization && degreeTypeNormalization !== "All") {
-      whereProgramCondition.degreeType = degreeTypeNormalization as DegreeType;
+      whereProgramCondition.degreeType = degreeTypeNormalization.toUpperCase() as DegreeType;
     }
 
-    // Program type filter
-    if (programTypeNormalization && programTypeNormalization !== "All") {
-      whereProgramCondition.code = programTypeNormalization as ProgramType;
-    }
 
     // Pagination
     const limit = 6;
@@ -174,6 +164,11 @@ class StudentService {
       currentPage,
       programs,
     };
+  }
+
+ async  myApplication(id:string){
+          const result=await prisma.admissionApplication.findMany({where:{id}})
+          return result
   }
 }
 

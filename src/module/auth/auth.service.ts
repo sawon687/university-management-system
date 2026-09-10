@@ -20,8 +20,10 @@ class AuthService {
     if (userExits) {
       throw new Error("This Email Already Created");
     }
+
     const otpkey = `otpkey:${payload.email}`;
     const userKey = `studentKey:${payload.email}`;
+ 
     const expirtionSeconds = 60 * 5;
     console.log(userKey, "userkey");
     const passwordhash = await bcrypt.hash(
@@ -48,6 +50,7 @@ class AuthService {
       expirtionSeconds: expirtionSeconds / 60,
     };
     const html = await ejs.renderFile(templatesPath, templatesData);
+    console.log('html',templatesData)
     await transporter.sendMail({
       from: config.smt_user,
       to: payload.email,
@@ -89,6 +92,7 @@ class AuthService {
         role: Role.STUDENT,
         status: StudentStatus.ACTIVE,
         emailVerified: true,
+        isEnrolled:false
       },
     });
 

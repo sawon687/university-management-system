@@ -21,7 +21,6 @@ export interface IAdmissionApplication {
 }
 
 export interface IqueryProgram {
-  programType?: string;
   search?: string;
   department?: string;
   degreeType?: string;

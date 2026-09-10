@@ -225,6 +225,20 @@ class AdminService {
 
     return result;
   }
+
+  async getllStudentApplicationDB() {
+    const result = await prisma.admissionApplication.findMany();
+
+    return result;
+  }
+
+  // async admissionUpdateApplication(status: AdmissionStatus, id: string) {
+  //   const result = await prisma.admissionApplication.update({
+  //     where: { id },
+  //     data: { status },
+  //   });
+  //   return result;
+  // }
 }
 
 export default new AdminService();

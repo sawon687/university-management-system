@@ -45,6 +45,7 @@ enum DegreeType {
   MSC
   BBA
   MBA
+  BA
 }
 
 enum SemesterCode {
@@ -53,15 +54,4 @@ enum SemesterCode {
   FALL
 }
 
-enum ProgramType {
-  BSC_CSE
-  BSC_EEE
-  BSC_CSE_AI
-  BSC_SWE
-  BSC_IT
-  BSC_BBA
-  MSC_CSE
-  MSC_EEE
-  MSC_SWE
-  MBA
-}
+

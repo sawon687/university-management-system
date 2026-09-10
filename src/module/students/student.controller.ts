@@ -64,6 +64,18 @@ updateme = this.handle(async (req: Request, res: Response) => {
     });
     })
 
+    myApplication=this.handle(async(req:Request,res:Response)=>{
+       const id=req.user?.id as string
+               const result=await studentService.myApplication(id)
+
+                   sendResponse(res, {
+      message: "program found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    })
+    })
+
 }
 
 export default new StudentController()

@@ -1,9 +1,7 @@
 model Program {
   id           String   @id @default(uuid())
   departmentId String 
-
   name         String
-  code         ProgramType   @unique
   degreeType   DegreeType
   duration     Int
   totalCredits Float
