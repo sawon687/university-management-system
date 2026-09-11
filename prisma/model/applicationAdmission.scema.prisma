@@ -1,8 +1,7 @@
 model AdmissionApplication {
-  id                  String          @id @default(uuid())
-  userId              String          
-  programId           String
-
+  id        String @id @default(uuid())
+  userId    String @unique
+  programId String
 
   previousInstitution String?
   previousDegree      String?
@@ -10,19 +9,22 @@ model AdmissionApplication {
   hscResult           Float?
   diplomaResult       Float?
 
-  status              AdmissionStatus @default(PENDING)
+  status AdmissionStatus @default(PENDING)
 
-  submittedAt         DateTime        @default(now())
-  reviewedAt          DateTime?
-  reviewedBy          String?
-  rejectionReason     String?
+  submittedAt     DateTime  @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
 
-  user                Users           @relation(fields: [userId], references: [id],onDelete: Cascade)
-  program             Program         @relation(fields: [programId], references: [id],onDelete: Cascade)
-  
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-   @@index([userId])
+  user    Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments  Payment?
+  fees      Fee[]
+
+  @@index([userId])
   @@index([programId])
   @@index([status])
 }

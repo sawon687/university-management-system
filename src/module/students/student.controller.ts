@@ -4,6 +4,7 @@ import { BaseController } from "../../utils/catchAsync";
 import statusCode from "http-status-codes";
 import { sendResponse } from '../../utils/sendResponse';
 import studentService from './student.service';
+import { prisma } from '../../lib/pirsma';
 
 class StudentController extends BaseController {
   
@@ -70,6 +71,20 @@ updateme = this.handle(async (req: Request, res: Response) => {
 
                    sendResponse(res, {
       message: "program found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    })
+    })
+
+    studentEnrolement=this.handle(async(req:Request,res:Response)=>{
+           const body=req.body
+           const studentId=req.params?.id
+           const paylaod={...body,studentId}
+           const result=await studentService.stuedentEnrolement(paylaod)
+
+                            sendResponse(res, {
+      message: "Stuent Enrolement successFully",
       status: statusCode.OK,
       success: true,
       data: result,

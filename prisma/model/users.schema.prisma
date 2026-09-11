@@ -1,20 +1,21 @@
-model Users{
-  id             String   @id @default(uuid())
+model Users {
+  id String @id @default(uuid())
 
-  name           String
-  email          String   @unique
-  password       String?
-  emailVerified  Boolean @default(false)
-  role           Role @default(STUDENT)
-  status         StudentStatus @default(PENDING)
- 
-   studentProfile   StudentProfile?
-    teacherProfile     TeacherProfile?
-    departmentId      String?
-    isEnrolled        Boolean?
-    department         Department? @relation(fields: [departmentId],references: [id])
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  application    AdmissionApplication[]
+  name          String
+  email         String        @unique
+  password      String?
+  emailVerified Boolean       @default(false)
+  role          Role          @default(STUDENT)
+  status        StudentStatus @default(PENDING)
 
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+  departmentId   String?
+  isEnrolled     Boolean?
+  department     Department?           @relation(fields: [departmentId], references: [id])
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  payments       Payment[]
+  application    AdmissionApplication?
+  fees           Fee[]
 }

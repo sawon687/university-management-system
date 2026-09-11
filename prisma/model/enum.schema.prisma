@@ -1,11 +1,9 @@
 enum Role {
   STUDENT
   INSTRUCTOR
-  DEPARTMENT_ADMIN
-  REGISTRAR
-  FINANCE_ADMIN
-  SUPER_ADMIN
+  ADMIN
 }
+
 enum StudentStatus {
   PENDING
   ACTIVE
@@ -21,9 +19,9 @@ enum UserStatus {
   PENDING
 }
 
-enum Gender { 
-    MALE
-    FEMALE
+enum Gender {
+  MALE
+  FEMALE
 }
 
 enum AdmissionStatus {
@@ -33,7 +31,6 @@ enum AdmissionStatus {
   REJECTED
   PAID
 }
-
 
 enum SemesterType {
   TRI_SEMESTER
@@ -54,4 +51,18 @@ enum SemesterCode {
   FALL
 }
 
+enum PaymentType {
+  ADMISSION_FEE
+  SEMESTER_FEE
+}
 
+enum PaymentMethod {
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}

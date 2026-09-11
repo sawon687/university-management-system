@@ -1,4 +1,4 @@
-import { randomInt } from "crypto";
+
 import {
   AdmissionStatus,
   DegreeType
@@ -11,7 +11,9 @@ import {
 import { prisma } from "../../lib/pirsma";
 import {
   IAdmissionApplication,
+  IEnrolementCorse,
   IqueryProgram,
+  IStudentEnrolement,
   IStudentProfile,
 } from "./students.interface";
 
@@ -166,9 +168,32 @@ class StudentService {
     };
   }
 
- async  myApplication(id:string){
-          const result=await prisma.admissionApplication.findMany({where:{id}})
-          return result
+  async myApplication(id: string) {
+    const result = await prisma.admissionApplication.findMany({
+      where: { userId: id },
+    });
+    return result;
+  }
+
+  async stuedentEnrolement(paylaod: IStudentEnrolement) {
+    const { semesterId, studentId, courseId } = paylaod;
+
+    const result = await prisma.enrollment.create({
+      data: {
+        semesterId,
+        studentId,
+        Enrolementcourses: {
+          createMany: {
+            data:{
+              courseId,
+             
+            }
+          },
+        },
+      },
+    });
+
+    return result;
   }
 }
 

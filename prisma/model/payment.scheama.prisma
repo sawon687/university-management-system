@@ -1,0 +1,27 @@
+model Payment {
+  id     String @id @default(uuid())
+  userId String
+  feeId  String
+
+  amount        Float
+  paymentType   PaymentType
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(PENDING)
+
+  transactionId String? @unique
+  admissionId   String? @unique
+
+  paidAt DateTime?
+
+  user      Users                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fee       Fee                   @relation(fields: [feeId], references: [id])
+  admission AdmissionApplication? @relation(fields: [admissionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([feeId])
+  @@index([paymentType])
+  @@index([paymentStatus])
+}

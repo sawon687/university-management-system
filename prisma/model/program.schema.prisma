@@ -1,26 +1,26 @@
 model Program {
-  id           String   @id @default(uuid())
-  departmentId String 
+  id           String                 @id @default(uuid())
+  departmentId String
   name         String
   degreeType   DegreeType
   duration     Int
   totalCredits Float
-  semester      Int
-  semesterType   SemesterType
+  semester     Int
+  semesterType SemesterType
   description  String
   admissionFee Float
   tuitionFee   Float
-  isActive     Boolean  @default(true)
+  isActive     Boolean                @default(true)
   perCreditFee Float
   totalFee     Float
-  department   Department @relation(fields: [departmentId], references: [id])
+  department   Department             @relation(fields: [departmentId], references: [id])
   courses      Course[]
   applications AdmissionApplication[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([departmentId])
   @@index([degreeType])
   @@index([name])
- 
 }

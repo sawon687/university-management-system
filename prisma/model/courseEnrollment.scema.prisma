@@ -1,0 +1,13 @@
+model CourseEnrollment {
+  id           String @id @default(ulid())
+  enrollmentId String
+  courseId     String
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  course     Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+
+  @@unique([enrollmentId, courseId])
+  @@index([courseId])
+}

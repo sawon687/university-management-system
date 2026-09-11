@@ -1,8 +1,8 @@
 model TeacherProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  teacherCode    String   @unique
-  departmentId   String
+  id           String @id @default(uuid())
+  userId       String @unique
+  teacherCode  String @unique
+  departmentId String
 
   phone          String?
   gender         String?
@@ -15,9 +15,9 @@ model TeacherProfile {
   experience     String?
   profilePhoto   String?
 
-  user           Users      @relation(fields: [userId], references: [id],onDelete: Cascade)
-  department     Department @relation(fields: [departmentId], references: [id])
+  user       Users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id])
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

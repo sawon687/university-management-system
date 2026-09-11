@@ -1,18 +1,20 @@
 model Course {
-  id           String     @id @default(uuid())
-  title        String       //Corse title
-  code         String     @unique //Corse code look like cse cse-201
+  id           String @id @default(uuid())
+  title        String //Corse title
+  code         String @unique //Corse code look like cse cse-201
   description  String
   credit       Float
   departmentId String
 
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  programId    String 
-  program     Program @relation(fields: [programId], references: [id],onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  prerequisites  PrerequisiteCourse[] @relation("CoursePrerequisites")
-  prerequisiteFor PrerequisiteCourse[] @relation("PrerequisiteForCourses")
+  department       Department           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  programId        String
+  program          Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  prerequisites    PrerequisiteCourse[] @relation("CoursePrerequisites")
+  prerequisiteFor  PrerequisiteCourse[] @relation("PrerequisiteForCourses")
+  courseEnrollment CourseEnrollment[]
+
   @@index([programId])
   @@index([departmentId])
   @@index([code])
