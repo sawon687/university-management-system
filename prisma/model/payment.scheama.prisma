@@ -1,7 +1,7 @@
 model Payment {
   id     String @id @default(uuid())
   userId String
-  feeId  String
+  feeId  String?
 
   amount        Float
   paymentType   PaymentType
@@ -10,11 +10,11 @@ model Payment {
 
   transactionId String? @unique
   admissionId   String? @unique
-
+  
   paidAt DateTime?
 
   user      Users                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fee       Fee                   @relation(fields: [feeId], references: [id])
+  fee       Fee?                  @relation(fields: [feeId], references: [id])
   admission AdmissionApplication? @relation(fields: [admissionId], references: [id])
 
   createdAt DateTime @default(now())

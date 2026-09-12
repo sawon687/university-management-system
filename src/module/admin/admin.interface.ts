@@ -41,6 +41,7 @@ export interface ICourse{
     departmentId:string
      programId:string
        credit :number
+       semesterNumber:number
   
 }
 

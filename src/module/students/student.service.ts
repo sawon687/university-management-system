@@ -11,7 +11,6 @@ import {
 import { prisma } from "../../lib/pirsma";
 import {
   IAdmissionApplication,
-  IEnrolementCorse,
   IqueryProgram,
   IStudentEnrolement,
   IStudentProfile,
@@ -174,10 +173,15 @@ class StudentService {
     });
     return result;
   }
-
+  async getAllCourseDB(departmentId: string) {
+    const result = await prisma.course.findMany({
+      where: { departmentId},
+    });
+    return result;
+  }
   async stuedentEnrolement(paylaod: IStudentEnrolement) {
     const { semesterId, studentId, courseId } = paylaod;
-
+ 
     const result = await prisma.enrollment.create({
       data: {
         semesterId,

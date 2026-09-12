@@ -1,4 +1,5 @@
 export interface IPaymentReference {
-  admissionId?: string;
+  applicationsId?: string;
   semesterEnrollmentId?: string;
 }
+

@@ -8,6 +8,7 @@ export const adminSeed=async()=>{
         const adminExits=await prisma.users.findFirst({where:{
             role:Role.ADMIN
         }})
+        
 
         if(adminExits){
             console.log("Super Admin Already Exists!");
@@ -24,16 +25,16 @@ export const adminSeed=async()=>{
         }
 
         const passwordHash=await bcrypt.hash(password,Number(config.bycriptHashRound))
-        const superAdmin=await prisma.users.create({data:{
+        const admin=await prisma.users.create({data:{
             name,
             email,
             password:passwordHash,
-            role:Role.SUPER_ADMIN,
+            role:Role.ADMIN,
             status:UserStatus.ACTIVE,
             emailVerified:true
         }})
         
-		console.log("Super Admin Created : ", superAdmin);
+		console.log("Super Admin Created : ", admin);
      } catch (error) {
          console.log("Error Seeding Super Admin : ", error);
      }

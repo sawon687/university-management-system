@@ -91,6 +91,19 @@ updateme = this.handle(async (req: Request, res: Response) => {
     })
     })
 
+       getAllcourse=this.handle(async(req:Request,res:Response)=>{
+           const departmentId=req.params?.id as string
+         
+           const result=await studentService.getAllCourseDB(departmentId)
+
+                            sendResponse(res, {
+      message: "corses all added",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    })
+    })
+
 }
 
 export default new StudentController()

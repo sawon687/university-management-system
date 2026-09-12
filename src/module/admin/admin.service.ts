@@ -163,8 +163,13 @@ class AdminService {
   }
 
   async createCourseDB(payload: ICourse) {
-    const { code, departmentId, description, title, programId, credit } =
+    const { code, departmentId, description, title, programId, credit,semesterNumber } =
       payload;
+      const departmentExits=await prisma.department.findUnique({where:{id:departmentId}})
+      if(!departmentExits)
+      {
+         throw new Error("This Department Doesnot exits");
+      }
     const exitCourse = await prisma.course.findUnique({ where: { code } });
     if (exitCourse) {
       throw new Error("This course is already add");
@@ -177,6 +182,7 @@ class AdminService {
         title,
         programId,
         credit,
+        semesterNumber
       },
     });
     return result;

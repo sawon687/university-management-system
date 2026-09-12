@@ -21,7 +21,8 @@ const config = {
   smt_password:process.env.SMT_PASSWORD!,
   admin_name:process.env.ADMIN_NAME!,
   admin_password:process.env.ADMIN_PASSWORD!,
-  admin_email:process.env.ADMIN_EMAIL!
+  admin_email:process.env.ADMIN_EMAIL!,
+  stripeWebhookSecret:process.env.STRIP_WEB_KEY!
 
 };
 export default config;

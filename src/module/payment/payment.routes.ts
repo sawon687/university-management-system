@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import PaymentController from './Payment.controller';
+import { auth } from '../../midileware/auth';
 
 
 
@@ -7,6 +9,6 @@ import { Router } from 'express';
 
 const router=Router()
 
+router.post('/initiate',auth(),PaymentController.createPayment)
 
-
-export const teacherRouter=router
+export const paymentRouter=router
