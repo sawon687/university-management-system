@@ -1,7 +1,8 @@
-
 import {
   AdmissionStatus,
-  DegreeType
+  DegreeType,
+  FeeType,
+  PaymentType,
 } from "../../../generated/prisma/client";
 import {
   AdmissionApplicationWhereInput,
@@ -19,17 +20,11 @@ import {
 
 class StudentService {
   async updateProfileDB(paylaod: IStudentProfile) {
-    const {
-      phone,
-      gender,
-      dateOfBirth,
-      address,
-      studentId,
-      departmentId,
-    } = paylaod as IStudentProfile & {
-      departmentId: string;
-    };
-  
+    const { phone, gender, dateOfBirth, address, studentId, departmentId } =
+      paylaod as IStudentProfile & {
+        departmentId: string;
+      };
+
     const result = await prisma.studentProfile.upsert({
       where: {
         studentId,
@@ -77,6 +72,13 @@ class StudentService {
       diplomaResult,
     } = payload;
 
+    const applicationExists = await prisma.admissionApplication.findUnique({
+      where: { id: userId },
+    });
+
+    if (applicationExists) {
+      throw new Error("This user has already submitted an application");
+    }
     const result = await prisma.admissionApplication.create({
       data: {
         userId,
@@ -94,7 +96,7 @@ class StudentService {
   }
 
   async getAllProgram(query: IqueryProgram) {
-    const {  search, department, degreeType, page } = query;
+    const { search, department, degreeType, page } = query;
 
     const whereProgramCondition: ProgramWhereInput = {};
 
@@ -131,9 +133,9 @@ class StudentService {
 
     // Degree type filter
     if (degreeTypeNormalization && degreeTypeNormalization !== "All") {
-      whereProgramCondition.degreeType = degreeTypeNormalization.toUpperCase() as DegreeType;
+      whereProgramCondition.degreeType =
+        degreeTypeNormalization.toUpperCase() as DegreeType;
     }
-
 
     // Pagination
     const limit = 6;
@@ -176,45 +178,104 @@ class StudentService {
   }
   async getAllCourseDB(departmentId: string) {
     const result = await prisma.course.findMany({
-      where: { departmentId},
+      where: { departmentId },
     });
     return result;
   }
-  async stuedentEnrolement(paylaod: IStudentEnrolement) {
-    const { semesterId, studentId, courseId } = paylaod;
- 
-    const result = await prisma.enrollment.create({
-      data: {
-        semesterId,
-        studentId,
-        Enrolementcourses: {
-          createMany: {
-            data:{
-              courseId,
-             
-            }
+
+  async stuedentEnrolement(payload: IStudentEnrolement) {
+    const { semesterId, studentId, Enrolementcourses } = payload;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const enrollment = await tx.enrollment.create({
+        data: {
+          semesterId,
+          studentId,
+
+          Enrolementcourses: {
+            createMany: {
+              data: Enrolementcourses,
+            },
           },
         },
-      },
+
+        include: {
+          Enrolementcourses: {
+            include: {
+              course: {
+                select: {
+                  program: {
+                    select: {
+                      perCreditFee: true,
+                    },
+                  },
+                  credit: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const courses = enrollment.Enrolementcourses.map((item) => item.course);
+
+      const totalCredit = courses.reduce(
+        (sum, course) => sum + Number(course.credit),
+        0,
+      );
+
+      const perCreditFee = Number(courses[0]?.program?.perCreditFee ?? 0);
+
+      const totalAmount = totalCredit * perCreditFee;
+
+      const perInstallmentAmount = totalAmount / 3;
+
+      const fee = await tx.fee.create({
+        data: {
+          studentId,
+          semesterId,
+          enroleMentId: enrollment.id,
+          feeType: PaymentType.SEMESTER_FEE,
+
+          totalCredit,
+          totalAmount,
+          perCreditRate: perCreditFee,
+
+          firstInstallmentAmount: perInstallmentAmount,
+          secondInstallmentAmount: perInstallmentAmount,
+          thirdInstallmentAmount: perInstallmentAmount,
+
+          remainingAmount: totalAmount,
+
+          firstInstallmentRemainingAmount: perInstallmentAmount,
+
+          secondInstallmentRemainingAmount: perInstallmentAmount,
+
+          thirdInstallmentRemainingAmount: perInstallmentAmount,
+        },
+      });
+
+      return {
+        enrollment,
+        fee,
+      };
     });
 
     return result;
   }
 
-  async GetfeeInstalmentDB(userId:string,semesterId:string) {
-   const whereConditon:FeeWhereInput={}
+  async GetfeeInstalmentDB(userId: string, semesterId: string) {
+    const whereConditon: FeeWhereInput = {};
 
-       whereConditon.studentId=userId
-   if(semesterId)
-   {
-      whereConditon.semesterId=semesterId
-   }
- 
-    const result = await prisma.fee.findMany({where:whereConditon});
+    whereConditon.studentId = userId;
+    if (semesterId) {
+      whereConditon.semesterId = semesterId;
+    }
+
+    const result = await prisma.fee.findMany({ where: whereConditon });
 
     return result;
   }
-
 }
 
 export default new StudentService();

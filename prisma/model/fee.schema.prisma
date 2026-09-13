@@ -1,21 +1,41 @@
 model Fee {
-  id String @id @default(uuid())
+  id           String @id @default(uuid())
 
-  studentId  String
-  semesterId String
+  studentId    String
+  semesterId   String
+  enroleMentId String @unique
 
   feeType PaymentType
 
   totalCredit   Decimal
   perCreditRate Decimal
-  totalAmount   Decimal
 
-  firstInstallmentAmount  Decimal
-  secondInstallmentAmount Decimal
-  thirdInstallmentAmount  Decimal
+  // Original/full fee amount
+  totalAmount Decimal
 
-  student  Users    @relation(fields: [studentId], references: [id])
-  semester Semester @relation(fields: [semesterId], references: [id])
+  // Total unpaid amount
+  remainingAmount Decimal
+
+  // 1st installment
+  firstInstallmentAmount          Decimal
+  firstInstallmentRemainingAmount Decimal
+  firstInstallmentStatus           PaymentStatus @default(PENDING)
+
+  // 2nd installment
+  secondInstallmentAmount          Decimal
+  secondInstallmentRemainingAmount Decimal
+  secondInstallmentStatus           PaymentStatus @default(PENDING)
+
+  // 3rd installment
+  thirdInstallmentAmount          Decimal
+  thirdInstallmentRemainingAmount Decimal
+  thirdInstallmentStatus           PaymentStatus @default(PENDING)
+
+  student Users @relation( fields: [studentId],  references: [id],onDelete: Cascade)
+
+  semester Semester @relation( fields: [semesterId],references: [id],onDelete: Cascade)
+
+  enroleMent Enrollment @relation(fields: [enroleMentId],references: [id],onDelete: Cascade)
 
   payments Payment[]
 
@@ -24,4 +44,5 @@ model Fee {
 
   @@index([studentId])
   @@index([semesterId])
+  @@unique([studentId, semesterId])
 }

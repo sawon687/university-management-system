@@ -10,7 +10,6 @@ model Payment {
 
   transactionId String? @unique
   admissionId   String? @unique
-  
   paidAt DateTime?
 
   user      Users                 @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -30,5 +30,5 @@ export interface IEnrolementCorse{
 export interface IStudentEnrolement{
        studentId:  string
        semesterId: string
-       courseId:string
+       Enrolementcourses:{courseId:string}[]
 }

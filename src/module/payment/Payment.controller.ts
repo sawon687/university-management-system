@@ -33,7 +33,7 @@ class PaymentController extends BaseController {
       signature,
       config.stripeWebhookSecret,
     );
-  console.log("🔥 Stripe event:", event.type);
+
 
     const result = await paymentService.confirmPaymentDB(event)
 
