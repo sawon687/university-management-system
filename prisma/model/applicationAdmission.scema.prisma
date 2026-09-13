@@ -22,7 +22,7 @@ model AdmissionApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   payments  Payment?
-  fees      Fee[]
+  
 
   @@index([userId])
   @@index([programId])

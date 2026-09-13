@@ -22,9 +22,8 @@ class PaymentController extends BaseController {
   });
 
   confrimPayment = this.handle(async (req: Request, res: Response) => {
-      console.log("🔥 WEBHOOK API HIT");
     const signature = req.headers["stripe-signature"];
-
+         
     if (!signature) {
       throw new Error("Stripe signature is missing");
     }

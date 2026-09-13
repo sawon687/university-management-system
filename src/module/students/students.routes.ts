@@ -12,5 +12,5 @@ router.get('/all-Program',studentController.getAllProgramg)
 router.get('/my-application',auth('STUDENT'),studentController.myApplication)
 router.post('/student-enrolement',auth('STUDENT'),studentController.studentEnrolement)
 router.get('/department/:id/courses',studentController.getAllcourse)
-
+router.get('/feeInstalment',auth('STUDENT'),studentController.getFeeInstalment)
 export const studentRouter=router

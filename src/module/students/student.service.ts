@@ -5,6 +5,7 @@ import {
 } from "../../../generated/prisma/client";
 import {
   AdmissionApplicationWhereInput,
+  FeeWhereInput,
   ProgramWhereInput,
   UsersWhereInput,
 } from "../../../generated/prisma/models";
@@ -199,6 +200,21 @@ class StudentService {
 
     return result;
   }
+
+  async GetfeeInstalmentDB(userId:string,semesterId:string) {
+   const whereConditon:FeeWhereInput={}
+
+       whereConditon.studentId=userId
+   if(semesterId)
+   {
+      whereConditon.semesterId=semesterId
+   }
+ 
+    const result = await prisma.fee.findMany({where:whereConditon});
+
+    return result;
+  }
+
 }
 
 export default new StudentService();

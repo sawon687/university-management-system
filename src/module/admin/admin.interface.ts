@@ -58,8 +58,7 @@ export interface  ICreatePrerequisite{
 
 export interface ISemester{
 
-  name:string      
-  code:SemesterCode             
+  name:SemesterCode        
   year:number            
 
   startDate:string

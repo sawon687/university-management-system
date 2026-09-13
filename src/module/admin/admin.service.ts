@@ -199,12 +199,19 @@ class AdminService {
   }
 
   async createSemesterDB(paylaod: ISemester) {
-    const { name, year, code, startDate, endDate } = paylaod;
+    const { name, year, startDate, endDate } = paylaod;
+
+    const exitsSemester = await prisma.semester.findUnique({
+      where: { name_year: { name, year } },
+    });
+
+    if(exitsSemester){
+       throw new Error('This Semester is Already cretate')
+    }
     const result = await prisma.semester.create({
       data: {
         name,
         year,
-        code,
         startDate,
         endDate,
       },

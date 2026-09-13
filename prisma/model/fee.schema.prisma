@@ -1,19 +1,27 @@
 model Fee {
   id String @id @default(uuid())
 
-  studentId   String
-  admissionId String?
-  semesterId  String?
+  studentId  String
+  semesterId String
 
   feeType PaymentType
-  amount  Decimal
 
-  student   Users                 @relation(fields: [studentId], references: [id])
-  admission AdmissionApplication? @relation(fields: [admissionId], references: [id])
-  semester  Semester?             @relation(fields: [semesterId], references: [id])
+  totalCredit   Decimal
+  perCreditRate Decimal
+  totalAmount   Decimal
+
+  firstInstallmentAmount  Decimal
+  secondInstallmentAmount Decimal
+  thirdInstallmentAmount  Decimal
+
+  student  Users    @relation(fields: [studentId], references: [id])
+  semester Semester @relation(fields: [semesterId], references: [id])
 
   payments Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([semesterId])
 }

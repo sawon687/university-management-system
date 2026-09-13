@@ -7,6 +7,7 @@ import { adminRouter } from './module/admin/admin.routes'
 import { teacherRouter } from './module/teacher/teacher.route'
 import { paymentRouter } from './module/payment/payment.routes'
 import PaymentController from './module/payment/Payment.controller'
+import { auth } from './midileware/auth'
 
 
 

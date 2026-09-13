@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 
 import adminController from './admin.controller';
+import { auth } from '../../midileware/auth';
 
 
 

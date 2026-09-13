@@ -104,6 +104,20 @@ updateme = this.handle(async (req: Request, res: Response) => {
     })
     })
 
+       getFeeInstalment=this.handle(async(req:Request,res:Response)=>{
+                 const userId=req.user?.id as string
+                  const semesterId=req.query.semesterId as string
+           const result=await studentService.GetfeeInstalmentDB(userId,semesterId)
+
+                            sendResponse(res, {
+      message: "get all fee",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    })
+    })
+    
+
 }
 
 export default new StudentController()
