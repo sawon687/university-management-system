@@ -276,6 +276,17 @@ class StudentService {
 
     return result;
   }
+
+  async myEnrolementDB(id: string) {
+    const result = await prisma.enrollment.findMany({
+      where: { studentId: id },
+      include: {
+        Enrolementcourses: true,
+      },
+    });
+
+    return result;
+  }
 }
 
 export default new StudentService();

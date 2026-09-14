@@ -4,7 +4,7 @@ import adminService from "./admin.service";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
-import { Query } from "./admin.interface";
+import { ICourseQuery, Query } from "./admin.interface";
 
 class Admin extends BaseController {
   CreateDepartment = this.handle(async (req: Request, res: Response) => {
@@ -111,54 +111,86 @@ class Admin extends BaseController {
     });
   });
 
-  createSemester=this.handle(async(req:Request,res:Response)=>{
-     const paylaod=req.body
-    const result=await adminService.createSemesterDB(paylaod)
+  createSemester = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await adminService.createSemesterDB(paylaod);
 
-       sendResponse(res, {
+    sendResponse(res, {
       message: `Semester create is successfully`,
       status: statusCode.OK,
       success: true,
       data: result,
     });
-  })
+  });
 
-    updateSemester=this.handle(async(req:Request,res:Response)=>{
-     const paylaod=req.body
-     const id=req.params?.id as string
-    const result=await adminService.updateSemesterDB(paylaod,id)
+  updateSemester = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const id = req.params?.id as string;
+    const result = await adminService.updateSemesterDB(paylaod, id);
 
-       sendResponse(res, {
+    sendResponse(res, {
       message: `Update create is successfully`,
       status: statusCode.OK,
       success: true,
       data: result,
     });
-  })
+  });
 
-  getAllStudenApplication=this.handle(async(req:Request,res:Response)=>{
-         const result=await adminService.getllStudentApplicationDB()
+  getAllStudenApplication = this.handle(async (req: Request, res: Response) => {
+    const result = await adminService.getllStudentApplicationDB();
 
-       sendResponse(res, {
+    sendResponse(res, {
       message: `Update create is successfully`,
       status: statusCode.OK,
       success: true,
       data: result,
     });
-  })
+  });
 
-  // admisstionStatusUpdate=this.handle(async(req:Request,res:Response)=>{
-  //   const id=req.params?.id as string
-  //   const status=req.body?.status as string
-  //    const result=await adminService.admissionUpdateApplication(status,id)
+  courseTeacherAssign = this.handle(async (req: Request, res: Response) => {
+    const body = req.body;
+    const id = req.params?.id;
+    const paylaod = {
+      ...body,
+      courseId: id,
+    };
+    const result = await adminService.courseTeacherAssign(paylaod);
 
-  //          sendResponse(res, {
-  //     message: `Update ${status.toLowerCase()} is successfully`,
-  //     status: statusCode.OK,
-  //     success: true,
-  //     data: result,
-  //   });
-  // })
+    sendResponse(res, {
+      message: `Course Assign teacher is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+
+  getALLcourse = this.handle(async (req: Request, res: Response) => {
+    const queray = req.query as unknown as ICourseQuery;
+  
+
+    const result = await adminService.getAllCourse(queray);
+
+    sendResponse(res, {
+      message: `all corse found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+
+  getALLSemester = this.handle(async (req: Request, res: Response) => {
+
+  
+
+    const result = await adminService.getALLSemester();
+
+    sendResponse(res, {
+      message: `all semester found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new Admin();

@@ -1,0 +1,18 @@
+model Result {
+  id          String  @id @default(cuid())
+  examId      String
+  studentId   String
+  marks       Float
+  grade       String?
+  gradePoint  Float?
+
+  exam        Exam  @relation(fields: [examId], references: [id])
+  student     Users @relation("StudentResults", fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([examId, studentId])
+  @@index([examId])
+  @@index([studentId])
+}

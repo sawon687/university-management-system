@@ -1,0 +1,24 @@
+model Exam {
+  id           String   @id @default(cuid())
+  courseId     String
+  semesterId   String
+  instructorId String
+
+  examType     ExamType
+  examDate     DateTime
+  totalMarks   Float
+
+  course       Course   @relation(fields: [courseId], references: [id])
+  semester     Semester @relation(fields: [semesterId], references: [id])
+  instructor   Users    @relation("InstructorExams", fields: [instructorId], references: [id])
+
+  results      Result[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([semesterId])
+  @@index([instructorId])
+}
+

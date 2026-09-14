@@ -19,7 +19,8 @@ model Course {
   prerequisites    PrerequisiteCourse[] @relation("CoursePrerequisites")
   prerequisiteFor  PrerequisiteCourse[] @relation("PrerequisiteForCourses")
   courseEnrollment CourseEnrollment[]
-
+  courseAssign      CourseAssignt[]
+  exam              Exam[]
   @@index([programId])
   @@index([departmentId])
   @@index([semesterNumber])

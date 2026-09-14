@@ -48,7 +48,7 @@ export interface ICourse{
 export interface Query{
     role:Role,
     status:StudentStatus
-
+    department:string
 }
 
 export interface  ICreatePrerequisite{
@@ -69,4 +69,17 @@ export interface IUpdateSemester{
    startDate?:string
   endDate?:string
   registrationOpen?:boolean
+}
+
+export interface ICourseAssingTeacher{
+  courseId:string,
+  instructorId: string
+  semesterId:   string
+}
+
+export interface ICourseQuery{
+  department:string
+  search:string,
+  
+
 }

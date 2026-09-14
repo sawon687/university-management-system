@@ -2,9 +2,11 @@ import {
   AdmissionStatus,
   Gender,
   Role,
+  StudentStatus,
   UserStatus,
 } from "../../../generated/prisma/enums";
 import {
+  CourseWhereInput,
   SemesterUpdateInput,
   UsersWhereInput,
 } from "../../../generated/prisma/models";
@@ -12,6 +14,8 @@ import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
 import {
   ICourse,
+  ICourseAssingTeacher,
+  ICourseQuery,
   ICreatePrerequisite,
   IDepartment,
   IProgram,
@@ -47,22 +51,40 @@ class AdminService {
     return result;
   }
 
-  async getAllUserDB(queray: Query) {
-    const { role, status } = queray;
-    const whereQuery: UsersWhereInput = {};
-    if (role) {
-      whereQuery.role = role;
-    }
-    if (status) {
-      whereQuery.status = status;
-    }
-    const result = await prisma.users.findMany({ where: whereQuery });
-    return result;
+  async getAllUserDB(query: Query) {
+  const { role, status, department } = query;
+
+  const whereQuery: UsersWhereInput = {};
+ const departmentNormalization = department?.trim() ?? null;
+  if (role) {
+    whereQuery.role = role.toLocaleUpperCase() as Role ;
   }
 
+  if (status) {
+    whereQuery.status = status.toLocaleUpperCase() as StudentStatus ;
+  }
+
+  if (departmentNormalization) {
+    whereQuery.teacherProfile ={
+       department: {
+      code: departmentNormalization.toLocaleUpperCase()
+    }
+    }
+  }
+  console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
+  const result = await prisma.users.findMany({
+    where: whereQuery,
+    include: {
+      teacherProfile:true
+    }
+  });
+  console.log('result',result)
+
+  return result;
+}
   async teachersCreateDB(payload: ITeacher) {
     const { name, email, departmentId, gender } = payload;
-
+    console.log('paylaod',payload)
     const result = await prisma.users.create({
       data: {
         name,
@@ -86,6 +108,7 @@ class AdminService {
     if (!result) {
       throw new Error("Teacher Not Created");
     }
+    console.log('result',result)
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -245,13 +268,64 @@ class AdminService {
     return result;
   }
 
-  // async admissionUpdateApplication(status: AdmissionStatus, id: string) {
-  //   const result = await prisma.admissionApplication.update({
-  //     where: { id },
-  //     data: { status },
-  //   });
-  //   return result;
-  // }
+  async courseTeacherAssign(paylaod:ICourseAssingTeacher) {
+    const {semesterId,courseId,instructorId}=paylaod
+    const result = await prisma.courseAssignt.create({
+      data:{
+        semesterId,
+        courseId,
+        instructorId
+      }
+    });
+    return result;
+  }
+async getAllCourse(payload: ICourseQuery) {
+  const { department, search } = payload;
+
+  const departmentNor = department?.trim() || null;
+  const searchNor = search?.trim() || null;
+
+  const whereCondition: CourseWhereInput = {};
+
+  if (departmentNor) {
+    whereCondition.department = {
+      code: departmentNor.toUpperCase(),
+    };
+  }
+
+  if (searchNor) {
+    whereCondition.OR = [
+      {
+        title: {
+          contains: searchNor,
+          mode: "insensitive",
+        },
+      },
+      {
+        code: {
+          contains: searchNor,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+ 
+
+  const result = await prisma.course.findMany({
+    where: whereCondition,
+    include:{
+      department:true
+    }
+  },);
+
+  return result;
+}
+
+    async getALLSemester(){
+       const result=await prisma.semester.findMany()
+       return result
+    }
 }
 
 export default new AdminService();

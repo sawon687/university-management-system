@@ -20,6 +20,11 @@ class AuthService {
     if (userExits) {
       throw new Error("This Email Already Created");
     }
+    
+    if(payload.role==='INSTRUCTOR')
+    {
+       throw new Error('This instuctor not create normal users')
+    }
 
     const otpkey = `otpkey:${payload.email}`;
     const userKey = `studentKey:${payload.email}`;

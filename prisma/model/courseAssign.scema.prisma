@@ -1,0 +1,22 @@
+
+model CourseAssignt {
+  id           String @id @default(uuid())
+
+  courseId     String
+  instructorId String
+  semesterId   String
+
+  course       Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  instructor   Users @relation( fields: [instructorId],  references: [id],  onDelete: Cascade)
+
+  semester     Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([courseId, instructorId, semesterId])
+  @@index([courseId])
+  @@index([instructorId])
+  @@index([semesterId])
+}

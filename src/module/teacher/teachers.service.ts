@@ -2,20 +2,26 @@ import { Role, StudentStatus } from "../../../generated/prisma/enums";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
-import { ICreateTeacherProfile, ISetPasswordPayload, ITokenPyalod, IUpdateTeacherProfile } from "./teachers.interface";
+import {
+  ICreateExam,
+  ICreateTeacherProfile,
+  ISetPasswordPayload,
+  ITokenPyalod,
+  IUpdateTeacherProfile,
+} from "./teachers.interface";
 import bcrypt from "bcrypt";
 class Teachers {
   async setPasswordDB(paylaod: ISetPasswordPayload) {
     const { password, confirmPassword, tokenId } = paylaod;
-       if(!tokenId){
-        throw new Error("token is emapty pleace token")
+    if (!tokenId) {
+      throw new Error("token is emapty pleace token");
     }
     const readisTokenKey = `teacher:${tokenId}`;
     const redisToken = await redisClient.get(readisTokenKey);
     if (password !== confirmPassword) {
       throw new Error("confirm password doesnot match");
     }
- 
+
     if (!redisToken) {
       throw new Error("Token is invalid or expired");
     }
@@ -42,17 +48,28 @@ class Teachers {
         status: StudentStatus.ACTIVE,
       },
     });
-    
-    
-      await redisClient.del(readisTokenKey)
 
-     return result
+    await redisClient.del(readisTokenKey);
+
+    return result;
   }
 
-  async updateTeacherProfile(paylaod:IUpdateTeacherProfile,userId:string){
-     const {phone,address,experience,bio,gender,dateOfBirth,designation,specialization,qualification}=paylaod
+  async updateTeacherProfile(paylaod: IUpdateTeacherProfile, userId: string) {
+    const {
+      phone,
+      address,
+      experience,
+      bio,
+      gender,
+      dateOfBirth,
+      designation,
+      specialization,
+      qualification,
+    } = paylaod;
 
-     const result=await prisma.teacherProfile.update({where:{userId},data:{
+    const result = await prisma.teacherProfile.update({
+      where: { userId },
+      data: {
         experience,
         phone,
         gender,
@@ -61,11 +78,43 @@ class Teachers {
         specialization,
         qualification,
         address,
-        bio
-     }})
+        bio,
+      },
+    });
 
-     return result
-     
+    return result;
+  }
+
+  async myExamCouresesCreatedDB(paylaod: ICreateExam) {
+    const {
+      courseId,
+      semesterId,
+      instructorId,
+      examType,
+      examDate,
+      totalMarks,
+    } = paylaod;
+
+    const result = await prisma.exam.create({
+      data: {
+        courseId,
+        semesterId,
+        examDate,
+        examType,
+        totalMarks,
+        instructorId,
+      },
+    });
+
+    return result;
+  }
+
+  async myCoursesAssignDB(id: string) {
+    const result = await prisma.courseAssignt.findMany({
+      where: { instructorId: id },
+    });
+
+    return result;
   }
 }
 

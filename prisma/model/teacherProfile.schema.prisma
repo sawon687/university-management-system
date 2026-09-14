@@ -2,7 +2,7 @@ model TeacherProfile {
   id           String @id @default(uuid())
   userId       String @unique
   teacherCode  String @unique
-  departmentId String
+  departmentId String @unique
 
   phone          String?
   gender         String?

@@ -11,6 +11,8 @@ model Semester {
 
   fees              Fee[]
   enrollments       Enrollment[]
-
+  CourseAssign       CourseAssignt[]
+  exam                Exam[]
+  gpaResult           GPAResult[]
   @@unique([name,year])
 }

@@ -1,3 +1,5 @@
+import { ExamType } from '../../../generated/prisma/enums';
+
 export interface ISetPasswordPayload {
   password: string;
   confirmPassword: string;
@@ -20,4 +22,13 @@ export interface IUpdateTeacherProfile {
   qualification: string;
   experience: string;
   profilePhoto?: string;
+}
+
+export interface ICreateExam {
+  courseId: string;
+  semesterId: string;
+  instructorId: string;
+  examType: ExamType;
+  examDate: Date | string;
+  totalMarks: number;
 }

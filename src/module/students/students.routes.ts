@@ -13,4 +13,5 @@ router.get('/my-application',auth('STUDENT'),studentController.myApplication)
 router.post('/student-enrolement',auth('STUDENT'),studentController.studentEnrolement)
 router.get('/department/:id/courses',studentController.getAllcourse)
 router.get('/myInstalmentFee',auth('STUDENT'),studentController.getFeeInstalment)
+router.get('/my-enrolement',auth('STUDENT'),studentController.myEnrolement)
 export const studentRouter=router
