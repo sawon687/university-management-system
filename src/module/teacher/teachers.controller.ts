@@ -29,12 +29,12 @@ class Teachers extends BaseController {
   });
   myCoursesExamCreated = this.handle(async (req: Request, res: Response) => {
     const courseId = req.params?.id;
-    const instructorId=req.user?.id
+    const instructorId = req.user?.id;
     const body = req.body;
     const paylaod = {
       ...body,
       courseId,
-      instructorId
+      instructorId,
     };
     const result = await teachersService.myExamCouresesCreatedDB(paylaod);
     sendResponse(res, {
@@ -43,21 +43,33 @@ class Teachers extends BaseController {
       success: true,
       data: result,
     });
-
   });
   myCouresAssign = this.handle(async (req: Request, res: Response) => {
-    const id=req.user?.id as string
-      const  result = await teachersService.myCoursesAssignDB(id);
-          sendResponse(res, {
+    const id = req.user?.id as string;
+    const result = await teachersService.myCoursesAssignDB(id);
+    sendResponse(res, {
       message: "my corses found",
       status: statusCode.OK,
       success: true,
       data: result,
     });
-
-
   });
-  ra = this.handle(async (req: Request, res: Response) => {});
+  courseMarks = this.handle(async (req: Request, res: Response) => {
+    const courseId = req.params?.id;
+    const body = req.body;
+    const paylaod = {
+      ...body,
+      courseId,
+    };
+
+    const result = await teachersService.courseMarks(paylaod);
+    sendResponse(res, {
+      message: "Exam Created Succesfully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new Teachers();

@@ -5,7 +5,7 @@ model Department {
   description String?
 
   students  StudentProfile[]
-  teachers  TeacherProfile[]
+  teachers  InstructorProfile[]
   program   Program[]
   course    Course[]
   user      Users[]

@@ -32,3 +32,14 @@ export interface ICreateExam {
   examDate: Date | string;
   totalMarks: number;
 }
+
+export interface ICourseMarks{
+   studentId:       string
+  courseId:        string
+  semesterId:      string
+
+  attendanceMarks:number 
+  assignmentMarks: number
+  midMarks: number       
+  finalExamMarks:number
+}

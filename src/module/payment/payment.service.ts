@@ -5,13 +5,12 @@ import {
   PaymentType,
   SemesterCode,
 } from "../../../generated/prisma/enums";
-import { PaymentWhereInput } from "../../../generated/prisma/models";
 import type Stripe from "stripe";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
 import { stripe } from "../../lib/stripe";
 import { IPaymentReference } from "./payment.interface";
-import { error } from "node:console";
+
 
 class PaymentService {
   async createPaymentsDB(payload: IPaymentReference, userId: string) {

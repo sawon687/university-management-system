@@ -1,7 +1,6 @@
 import {
   AdmissionStatus,
   DegreeType,
-  FeeType,
   PaymentType,
 } from "../../../generated/prisma/client";
 import {

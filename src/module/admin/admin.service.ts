@@ -1,5 +1,6 @@
 import {
   AdmissionStatus,
+  DegreeType,
   Gender,
   Role,
   StudentStatus,
@@ -65,7 +66,7 @@ class AdminService {
   }
 
   if (departmentNormalization) {
-    whereQuery.teacherProfile ={
+    whereQuery.instructorProfile={
        department: {
       code: departmentNormalization.toLocaleUpperCase()
     }
@@ -75,7 +76,7 @@ class AdminService {
   const result = await prisma.users.findMany({
     where: whereQuery,
     include: {
-      teacherProfile:true
+      instructorProfile:true
     }
   });
   console.log('result',result)
@@ -91,7 +92,7 @@ class AdminService {
         email,
         role: Role.INSTRUCTOR,
 
-        teacherProfile: {
+        instructorProfile: {
           create: {
             teacherCode: `Tch-${crypto.randomUUID()}`,
             departmentId,
@@ -101,7 +102,7 @@ class AdminService {
       },
 
       include: {
-        teacherProfile: true,
+        instructorProfile: true,
       },
     });
 
@@ -149,7 +150,7 @@ class AdminService {
         semesterType,
         duration,
         departmentId,
-        degreeType,
+        degreeType: degreeType as DegreeType,
         description,
         totalCredits,
         tuitionFee,

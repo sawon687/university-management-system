@@ -14,5 +14,6 @@ model Semester {
   CourseAssign       CourseAssignt[]
   exam                Exam[]
   gpaResult           GPAResult[]
+  courseResult         CourseMarks[]
   @@unique([name,year])
 }

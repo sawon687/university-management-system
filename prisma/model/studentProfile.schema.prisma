@@ -7,7 +7,7 @@ model StudentProfile {
   profilePhoto  String?
   studentStatus StudentStatus @default(PENDING)
   studentId     String        @unique
-  user          Users         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  user          Users         @relation("studentProfile",fields: [studentId], references: [id], onDelete: Cascade)
   departmentId  String
   department    Department    @relation(fields: [departmentId], references: [id])
   createdAt     DateTime      @default(now())

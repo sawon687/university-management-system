@@ -1,0 +1,24 @@
+model CourseMarks {
+  id              String @id @default(cuid())
+
+  studentId       String
+  courseId        String
+  semesterId      String
+
+  attendanceMarks Float @default(0)
+  assignmentMarks Float @default(0)
+  midMarks        Float @default(0)
+  finalExamMarks  Float @default(0)
+
+  student  Users    @relation("studentCourseResult", fields: [studentId], references: [id])
+  course   Course   @relation(fields: [courseId], references: [id])
+  semester Semester @relation(fields: [semesterId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, courseId, semesterId])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([semesterId])
+}

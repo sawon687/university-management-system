@@ -18,6 +18,7 @@ model Exam {
   updatedAt DateTime @updatedAt
 
   @@index([courseId])
+  @@unique([courseId,semesterId,examType])
   @@index([semesterId])
   @@index([instructorId])
 }

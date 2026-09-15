@@ -21,6 +21,7 @@ model Course {
   courseEnrollment CourseEnrollment[]
   courseAssign      CourseAssignt[]
   exam              Exam[]
+  coursReuslt       CourseMarks[]
   @@index([programId])
   @@index([departmentId])
   @@index([semesterNumber])
