@@ -1,5 +1,6 @@
 import {
   AdmissionStatus,
+  CourseAssignmentStatus,
   DegreeType,
   Gender,
   Role,
@@ -53,39 +54,37 @@ class AdminService {
   }
 
   async getAllUserDB(query: Query) {
-  const { role, status, department } = query;
+    const { role, status, department } = query;
 
-  const whereQuery: UsersWhereInput = {};
- const departmentNormalization = department?.trim() ?? null;
-  if (role) {
-    whereQuery.role = role.toLocaleUpperCase() as Role ;
-  }
-
-  if (status) {
-    whereQuery.status = status.toLocaleUpperCase() as StudentStatus ;
-  }
-
-  if (departmentNormalization) {
-    whereQuery.instructorProfile={
-       department: {
-      code: departmentNormalization.toLocaleUpperCase()
+    const whereQuery: UsersWhereInput = {};
+    const departmentNormalization = department?.trim() ?? null;
+    if (role) {
+      whereQuery.role = role.toLocaleUpperCase() as Role;
     }
-    }
-  }
-  console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
-  const result = await prisma.users.findMany({
-    where: whereQuery,
-    include: {
-      instructorProfile:true
-    }
-  });
-  console.log('result',result)
 
-  return result;
-}
+    if (status) {
+      whereQuery.status = status.toLocaleUpperCase() as StudentStatus;
+    }
+
+    if (departmentNormalization) {
+      whereQuery.department = {
+        code: departmentNormalization.toLocaleUpperCase(),
+      };
+    }
+    console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
+    const result = await prisma.users.findMany({
+      where: whereQuery,
+      include: {
+        instructorProfile: true,
+      },
+    });
+    console.log("result", result);
+
+    return result;
+  }
   async teachersCreateDB(payload: ITeacher) {
     const { name, email, departmentId, gender } = payload;
-    console.log('paylaod',payload)
+    console.log("paylaod", payload);
     const result = await prisma.users.create({
       data: {
         name,
@@ -109,7 +108,7 @@ class AdminService {
     if (!result) {
       throw new Error("Teacher Not Created");
     }
-    console.log('result',result)
+    console.log("result", result);
 
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -187,13 +186,21 @@ class AdminService {
   }
 
   async createCourseDB(payload: ICourse) {
-    const { code, departmentId, description, title, programId, credit,semesterNumber } =
-      payload;
-      const departmentExits=await prisma.department.findUnique({where:{id:departmentId}})
-      if(!departmentExits)
-      {
-         throw new Error("This Department Doesnot exits");
-      }
+    const {
+      code,
+      departmentId,
+      description,
+      title,
+      programId,
+      credit,
+      semesterNumber,
+    } = payload;
+    const departmentExits = await prisma.department.findUnique({
+      where: { id: departmentId },
+    });
+    if (!departmentExits) {
+      throw new Error("This Department Doesnot exits");
+    }
     const exitCourse = await prisma.course.findUnique({ where: { code } });
     if (exitCourse) {
       throw new Error("This course is already add");
@@ -206,7 +213,7 @@ class AdminService {
         title,
         programId,
         credit,
-        semesterNumber
+        semesterNumber,
       },
     });
     return result;
@@ -229,8 +236,8 @@ class AdminService {
       where: { name_year: { name, year } },
     });
 
-    if(exitsSemester){
-       throw new Error('This Semester is Already cretate')
+    if (exitsSemester) {
+      throw new Error("This Semester is Already cretate");
     }
     const result = await prisma.semester.create({
       data: {
@@ -269,64 +276,73 @@ class AdminService {
     return result;
   }
 
-  async courseTeacherAssign(paylaod:ICourseAssingTeacher) {
-    const {semesterId,courseId,instructorId}=paylaod
-    const result = await prisma.courseAssignt.create({
-      data:{
-        semesterId,
-        courseId,
-        instructorId
-      }
+  async courseTeacherAssign(payload: ICourseAssingTeacher) {
+    const { semesterId, courseId, instructorId } = payload;
+    const existingAssignment = await prisma.courseAssignt.findUnique({
+      where: { courseId_semesterId: { courseId, semesterId } },
+    });
+    if (existingAssignment) {
+      throw new Error(
+        "This course is already assigned to an instructor for this semester",
+      );
+    }
+    const result = await prisma.$transaction(async (tx) => {
+      const assignment = await tx.courseAssignt.create({
+        data: { semesterId, courseId, instructorId },
+      });
+      await tx.course.update({
+        where: { id: courseId },
+        data: { status: CourseAssignmentStatus.ASSIGNED },
+      });
+      return assignment;
     });
     return result;
   }
-async getAllCourse(payload: ICourseQuery) {
-  const { department, search } = payload;
+  async getAllCourse(payload: ICourseQuery) {
+    const { department, search } = payload;
 
-  const departmentNor = department?.trim() || null;
-  const searchNor = search?.trim() || null;
+    const departmentNor = department?.trim() || null;
+    const searchNor = search?.trim() || null;
 
-  const whereCondition: CourseWhereInput = {};
+    const whereCondition: CourseWhereInput = {};
 
-  if (departmentNor) {
-    whereCondition.department = {
-      code: departmentNor.toUpperCase(),
-    };
+    if (departmentNor) {
+      whereCondition.department = {
+        code: departmentNor.toUpperCase(),
+      };
+    }
+
+    if (searchNor) {
+      whereCondition.OR = [
+        {
+          title: {
+            contains: searchNor,
+            mode: "insensitive",
+          },
+        },
+        {
+          code: {
+            contains: searchNor,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const result = await prisma.course.findMany({
+      where: whereCondition,
+      include: {
+        department: true,
+      },
+    });
+
+    return result;
   }
 
-  if (searchNor) {
-    whereCondition.OR = [
-      {
-        title: {
-          contains: searchNor,
-          mode: "insensitive",
-        },
-      },
-      {
-        code: {
-          contains: searchNor,
-          mode: "insensitive",
-        },
-      },
-    ];
+  async getALLSemester() {
+    const result = await prisma.semester.findMany();
+    return result;
   }
-
- 
-
-  const result = await prisma.course.findMany({
-    where: whereCondition,
-    include:{
-      department:true
-    }
-  },);
-
-  return result;
-}
-
-    async getALLSemester(){
-       const result=await prisma.semester.findMany()
-       return result
-    }
 }
 
 export default new AdminService();

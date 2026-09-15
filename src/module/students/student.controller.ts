@@ -124,6 +124,23 @@ class StudentController extends BaseController {
       data: result,
     });
   });
+
+    mygpa = this.handle(async (req: Request, res: Response) => {
+    const userId = req.user?.id as string;
+    const body=req.body
+    const  paylaod={
+      ...body,
+      studentId:userId
+    }
+    const result = await studentService.myCgpaDB(paylaod);
+
+    sendResponse(res, {
+      message: "get all enrolement",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new StudentController();

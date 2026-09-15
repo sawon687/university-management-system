@@ -15,7 +15,7 @@ model Course {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  status CourseAssignmentStatus @default(UNASSIGNED)
   prerequisites    PrerequisiteCourse[] @relation("CoursePrerequisites")
   prerequisiteFor  PrerequisiteCourse[] @relation("PrerequisiteForCourses")
   courseEnrollment CourseEnrollment[]

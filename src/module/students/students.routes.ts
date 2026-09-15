@@ -14,4 +14,5 @@ router.post('/student-enrolement',auth('STUDENT'),studentController.studentEnrol
 router.get('/department/:id/courses',studentController.getAllcourse)
 router.get('/myInstalmentFee',auth('STUDENT'),studentController.getFeeInstalment)
 router.get('/my-enrolement',auth('STUDENT'),studentController.myEnrolement)
+router.post('/my-gpa',auth('STUDENT'),studentController.mygpa)
 export const studentRouter=router

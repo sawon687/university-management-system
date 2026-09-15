@@ -32,3 +32,15 @@ export interface IStudentEnrolement{
        semesterId: string
        Enrolementcourses:{courseId:string}[]
 }
+
+
+export interface ICourseQuery { 
+  search?: string; 
+  departmentId?: string; 
+  programId?: 
+  string; 
+  semesterNumber?: string; 
+  page?: string; 
+  limit?: string; 
+
+}

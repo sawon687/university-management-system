@@ -17,11 +17,12 @@ model Users {
   updatedAt      DateTime              @updatedAt
   payments       Payment[]
   application    AdmissionApplication?
-courseAssignments CourseAssignt[]
+  courseAssignments CourseAssignt[]
   fees           Fee[]
   instructorExams   Exam[]   @relation("InstructorExams")
   studentResults    Result[] @relation("StudentResults")
   gpaResult         GPAResult[]
   corseResult       CourseMarks[] @relation("studentCourseResult")
+  enrolledment      Enrollment[]  
 
 }

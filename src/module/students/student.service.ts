@@ -1,3 +1,4 @@
+import { create } from "node:domain";
 import {
   AdmissionStatus,
   DegreeType,
@@ -186,78 +187,127 @@ class StudentService {
     const { semesterId, studentId, Enrolementcourses } = payload;
 
     const result = await prisma.$transaction(async (tx) => {
-      const enrollment = await tx.enrollment.create({
-        data: {
-          semesterId,
-          studentId,
+      const cousrseId = Enrolementcourses.map((course) => course.courseId);
 
-          Enrolementcourses: {
-            createMany: {
-              data: Enrolementcourses,
+      const prerequisites = await tx.prerequisiteCourse.findMany({
+        where: {
+          courseId: {
+            in: cousrseId,
+          },
+        },
+        select: {
+          courseId: true,
+          prerequisiteCourseId: true,
+          prerequisiteCourse: {
+            select: {
+              code: true,
+              title: true,
             },
           },
         },
+      });
 
-        include: {
-          Enrolementcourses: {
-            include: {
-              course: {
-                select: {
-                  program: {
-                    select: {
-                      perCreditFee: true,
+      for (const prerequisite of prerequisites) {
+        const prerequisiteResult = await tx.result.findFirst({
+          where: {
+            studentId,
+            exam: {
+              courseId: prerequisite.courseId,
+            },
+          },
+          select: {
+            grade: true,
+            gradePoint: true,
+          },
+        });
+
+        // No result means prerequisite not completed if
+
+        if (!prerequisiteResult) {
+          throw new Error(
+            `You must complete prerequisite course ${prerequisite.prerequisiteCourse.code} before enrolling in this course`,
+          );
+        }
+
+        if (prerequisiteResult.grade === "F") {
+          throw new Error(
+            `You failed prerequisite course ${prerequisite.prerequisiteCourse.code}. You cannot enroll in ${prerequisite.courseId}`,
+          );
+        }
+
+        const enrollment = await tx.enrollment.create({
+          data: {
+            semesterId,
+            studentId,
+
+            Enrolementcourses: {
+              createMany: {
+                data: Enrolementcourses,
+              },
+            },
+          },
+
+          include: {
+            Enrolementcourses: {
+              include: {
+                course: {
+                  select: {
+                    program: {
+                      select: {
+                        perCreditFee: true,
+                      },
                     },
+                    credit: true,
                   },
-                  credit: true,
                 },
               },
             },
           },
-        },
-      });
+        });
 
-      const courses = enrollment.Enrolementcourses.map((item) => item.course);
+        const courses = enrollment.Enrolementcourses.map((item) => item.course);
 
-      const totalCredit = courses.reduce(
-        (sum, course) => sum + Number(course.credit),
-        0,
-      );
+        const totalCredit = courses.reduce(
+          (sum, course) => sum + Number(course.credit),
+          0,
+        );
 
-      const perCreditFee = Number(courses[0]?.program?.perCreditFee ?? 0);
+        const perCreditFee = Number(courses[0]?.program?.perCreditFee ?? 0);
 
-      const totalAmount = totalCredit * perCreditFee;
+        const totalAmount = totalCredit * perCreditFee;
 
-      const perInstallmentAmount = totalAmount / 3;
+        const perInstallmentAmount = totalAmount / 3;
 
-      const fee = await tx.fee.create({
-        data: {
-          studentId,
-          semesterId,
-          enroleMentId: enrollment.id,
-          feeType: PaymentType.SEMESTER_FEE,
+        const fee = await tx.fee.create({
+          data: {
+            studentId,
+            semesterId,
+            enroleMentId: enrollment.id,
+            feeType: PaymentType.SEMESTER_FEE,
 
-          totalCredit,
-          totalAmount,
-          perCreditRate: perCreditFee,
+            totalCredit,
+            totalAmount,
+            perCreditRate: perCreditFee,
 
-          firstInstallmentAmount: perInstallmentAmount,
-          secondInstallmentAmount: perInstallmentAmount,
-          thirdInstallmentAmount: perInstallmentAmount,
+            firstInstallmentAmount: perInstallmentAmount,
+            secondInstallmentAmount: perInstallmentAmount,
+            thirdInstallmentAmount: perInstallmentAmount,
 
-          remainingAmount: totalAmount,
+            remainingAmount: totalAmount,
 
-          firstInstallmentRemainingAmount: perInstallmentAmount,
+            firstInstallmentRemainingAmount: perInstallmentAmount,
 
-          secondInstallmentRemainingAmount: perInstallmentAmount,
+            secondInstallmentRemainingAmount: perInstallmentAmount,
 
-          thirdInstallmentRemainingAmount: perInstallmentAmount,
-        },
-      });
+            thirdInstallmentRemainingAmount: perInstallmentAmount,
+          },
+        });
 
-      return {
-        enrollment,
-        fee,
-      };
+        return {
+          enrollment,
+          fee,
+        };
+      }
     });
 
     return result;
@@ -286,6 +336,65 @@ class StudentService {
 
     return result;
   }
+
+  async myCgpaDB(payload: Omit<IStudentEnrolement, "Enrolementcourses">) {
+    const { studentId, semesterId } = payload;
+
+    const results = await prisma.result.findMany({
+      where: {
+        studentId,
+        exam: {
+          semesterId,
+        },
+      },
+      select: {
+        gradePoint: true,
+        exam: {
+          select: {
+            course: {
+              select: {
+                credit: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const totalCredits = results.reduce(
+      (sum, result) => sum + Number(result.exam.course.credit),
+      0,
+    );
+
+    const totalPoints = results.reduce(
+      (sum, result) =>
+        sum + Number(result.gradePoint) * Number(result.exam.course.credit),
+      0,
+    );
+
+    const gpa =
+      totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
+
+    const semesterResult = await prisma.gPAResult.upsert({
+      where: {
+        studentId_semesterId: { studentId, semesterId },
+      },
+      update: {
+        totalPoints,
+        totalCredits,
+        gpa,
+      },
+      create: {
+        semesterId,
+        totalPoints,
+        totalCredits,
+        gpa,
+        studentId,
+      },
+    });
+    return semesterResult;
+  }
+  
 }
 
 export default new StudentService();

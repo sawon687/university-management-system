@@ -16,4 +16,5 @@ model GPAResult {
   @@unique([studentId, semesterId])
   @@index([studentId])
   @@index([semesterId])
+  @@map("gpaResult")
 }

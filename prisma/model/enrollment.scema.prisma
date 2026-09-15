@@ -4,7 +4,7 @@ model Enrollment {
   semesterId String
 
   semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
-
+  student Users @relation(fields: [studentId],references: [id],onUpdate: Cascade)
   Enrolementcourses CourseEnrollment[]
   fees  Fee?
 
