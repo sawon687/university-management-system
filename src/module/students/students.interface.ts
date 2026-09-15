@@ -36,9 +36,7 @@ export interface IStudentEnrolement{
 
 export interface ICourseQuery { 
   search?: string; 
-  departmentId?: string; 
-  programId?: 
-  string; 
+  departmentId:string; 
   semesterNumber?: string; 
   page?: string; 
   limit?: string; 

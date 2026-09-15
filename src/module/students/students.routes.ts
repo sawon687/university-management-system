@@ -11,7 +11,7 @@ router.post('/application-admission',auth("STUDENT"),studentController.admission
 router.get('/all-Program',studentController.getAllProgramg)
 router.get('/my-application',auth('STUDENT'),studentController.myApplication)
 router.post('/student-enrolement',auth('STUDENT'),studentController.studentEnrolement)
-router.get('/department/:id/courses',studentController.getAllcourse)
+router.get('/all-courses',auth('STUDENT'),studentController.getAllcourses)
 router.get('/myInstalmentFee',auth('STUDENT'),studentController.getFeeInstalment)
 router.get('/my-enrolement',auth('STUDENT'),studentController.myEnrolement)
 router.post('/my-gpa',auth('STUDENT'),studentController.mygpa)

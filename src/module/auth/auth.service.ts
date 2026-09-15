@@ -147,6 +147,7 @@ class AuthService {
           name: userExits.name,
           email: userExits.email,
           role: userExits.role,
+          departmentId:userExits.departmentId
         };
          
         const accessToken = jwtUtils.createToken(

@@ -3,9 +3,11 @@ import {
   AdmissionStatus,
   DegreeType,
   PaymentType,
+  Prisma,
 } from "../../../generated/prisma/client";
 import {
   AdmissionApplicationWhereInput,
+  CourseWhereInput,
   FeeWhereInput,
   ProgramWhereInput,
   UsersWhereInput,
@@ -13,6 +15,7 @@ import {
 import { prisma } from "../../lib/pirsma";
 import {
   IAdmissionApplication,
+  ICourseQuery,
   IqueryProgram,
   IStudentEnrolement,
   IStudentProfile,
@@ -176,12 +179,7 @@ class StudentService {
     });
     return result;
   }
-  async getAllCourseDB(departmentId: string) {
-    const result = await prisma.course.findMany({
-      where: { departmentId },
-    });
-    return result;
-  }
+
 
   async stuedentEnrolement(payload: IStudentEnrolement) {
     const { semesterId, studentId, Enrolementcourses } = payload;
@@ -394,7 +392,114 @@ class StudentService {
     });
     return semesterResult;
   }
-  
+  async getAllCourseDB(query: ICourseQuery) {
+    const {
+      search,
+      semesterNumber,
+      page = "1",
+      limit = "6",
+      departmentId
+    } = query;
+
+    const currentPage = Math.max(Number(page), 1);
+    const pageLimit = Math.max(Number(limit), 1);
+    const skip = (currentPage - 1) * pageLimit;
+
+    const andConditions: CourseWhereInput[] = [];
+
+    // Department fixed from logged-in user
+    if (departmentId) {
+      andConditions.push({
+        departmentId: departmentId,
+      });
+    }
+
+    if (search) {
+      andConditions.push({
+        OR: [
+          {
+            title: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+          {
+            code: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        ],
+      });
+    }
+
+
+    if (semesterNumber) {
+      andConditions.push({
+        semesterNumber: Number(semesterNumber),
+      });
+    }
+
+    const whereCondition: Prisma.CourseWhereInput = {
+      AND: andConditions,
+    };
+
+    const [courses, total] = await prisma.$transaction([
+      prisma.course.findMany({
+        where: whereCondition,
+        skip,
+        take: pageLimit,
+
+        include: {
+          department: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+
+          program: {
+            select: {
+              name: true,
+            },
+          },
+
+          courseAssign: {
+            include: {
+              instructor: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              semester: true,
+            },
+          },
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      prisma.course.count({
+        where: whereCondition,
+      }),
+    ]);
+
+    const totalPage = Math.ceil(total / pageLimit);
+
+    return {
+      meta: {
+        page: currentPage,
+        limit: pageLimit,
+        total,
+        totalPage,
+      },
+      data: courses,
+    };
+  }
 }
 
 export default new StudentService();

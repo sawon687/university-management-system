@@ -86,18 +86,7 @@ class StudentController extends BaseController {
     });
   });
 
-  getAllcourse = this.handle(async (req: Request, res: Response) => {
-    const departmentId = req.params?.id as string;
 
-    const result = await studentService.getAllCourseDB(departmentId);
-
-    sendResponse(res, {
-      message: "corses all added",
-      status: statusCode.OK,
-      success: true,
-      data: result,
-    });
-  });
 
   getFeeInstalment = this.handle(async (req: Request, res: Response) => {
     const userId = req.user?.id as string;
@@ -141,6 +130,25 @@ class StudentController extends BaseController {
       data: result,
     });
   });
+
+  getAllcourses=this.handle(async(req:Request,res:Response)=>{
+     const  departmentId=req.user?.departmentId
+     const query=req.query
+     const paylaod={
+      ...query,
+      departmentId
+     }
+     console.log('deparment',departmentId)
+
+       const result = await studentService.getAllCourseDB(paylaod);
+
+    sendResponse(res, {
+      message: "get all  courses found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  })
 }
 
 export default new StudentController();
