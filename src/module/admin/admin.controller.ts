@@ -191,6 +191,20 @@ class Admin extends BaseController {
       data: result,
     });
   });
+
+  dashboardStats= this.handle(async (req: Request, res: Response) => {
+
+  
+
+    const result = await adminService.dashboardStatsDB();
+
+    sendResponse(res, {
+      message: `dashbaord states found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new Admin();

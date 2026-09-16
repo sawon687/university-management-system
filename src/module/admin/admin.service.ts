@@ -3,6 +3,7 @@ import {
   CourseAssignmentStatus,
   DegreeType,
   Gender,
+  PaymentStatus,
   Role,
   StudentStatus,
   UserStatus,
@@ -342,6 +343,22 @@ class AdminService {
   async getALLSemester() {
     const result = await prisma.semester.findMany();
     return result;
+  }
+   async dashboardStatsDB() {
+    const [userCount, studentCoutn, instructorCount, TotalMoney] =
+      await  Promise.all([
+        prisma.users.count(),
+        prisma.users.count({ where: { role: Role.STUDENT } }),
+        prisma.users.count({ where: { role: Role.INSTRUCTOR } }),
+        prisma.payment.aggregate({
+          where: { paymentStatus: PaymentStatus.PAID },
+          _sum:{
+            amount:true
+          }
+        }),
+      ]);
+
+    return { userCount, studentCoutn, instructorCount, TotalMoney };
   }
 }
 

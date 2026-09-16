@@ -8,6 +8,7 @@ import { teacherRouter } from './module/teacher/teacher.route'
 import { paymentRouter } from './module/payment/payment.routes'
 import PaymentController from './module/payment/Payment.controller'
 import { auth } from './midileware/auth'
+import { UserRoutes } from './module/user/user.routes'
 
 
 
@@ -29,5 +30,6 @@ app.use('/api/v1/users',studentRouter)
 app.use('/api/v1/admin',adminRouter)
 app.use('/api/v1/teacher',teacherRouter)
 app.use('/api/v1/payments/',paymentRouter)
+app.use('/api/v1/user/',UserRoutes)
 
 export default app
