@@ -68,11 +68,10 @@ enum PaymentStatus {
 }
 
 enum ExamType {
-  QUIZ
+
   MIDTERM
   FINAL
-  ASSIGNMENT
-  PRESENTATION
+ 
 }
 enum CourseAssignmentStatus {
   ASSIGNED
