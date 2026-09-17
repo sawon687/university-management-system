@@ -1,4 +1,4 @@
-import { ExamType, Role, StudentStatus } from "../../../generated/prisma/enums";
+import { ExamType, Role, UserStatus} from "../../../generated/prisma/enums";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
@@ -45,7 +45,7 @@ class Teachers {
 			data: {
 				password: passwordHash,
 				emailVerified: true,
-				status: StudentStatus.ACTIVE,
+				status: UserStatus.ACTIVE,
 			},
 		});
 

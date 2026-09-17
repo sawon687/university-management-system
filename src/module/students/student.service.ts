@@ -229,7 +229,7 @@ class StudentService {
 
 			const courseIds = Enrolementcourses.map((course) => course.courseId);
 
-			//  First semester হলে prerequisite check লাগবে না
+			//  First semester not allow 
 			if (semester.semesterNumber !== 1) {
 				const prerequisites = await tx.prerequisiteCourse.findMany({
 					where: {

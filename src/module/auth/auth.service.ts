@@ -26,7 +26,7 @@ class AuthService {
 			throw new Error("This Email Already Created");
 		}
 
-		if (payload.role === "INSTRUCTOR") {
+		if (payload.role === Role.INSTRUCTOR) {
 			throw new Error("This instuctor not create normal users");
 		}
 
