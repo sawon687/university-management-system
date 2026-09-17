@@ -5,6 +5,7 @@ export interface IUser{
     email:string,
     role:Role,
     password:string,
+    departmentId:string
 
 }
 

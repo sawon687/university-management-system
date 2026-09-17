@@ -68,12 +68,16 @@ enum PaymentStatus {
 }
 
 enum ExamType {
-
   MIDTERM
   FINAL
- 
 }
+
 enum CourseAssignmentStatus {
   ASSIGNED
   UNASSIGNED
+}
+
+enum AuthProvider {
+  CREDENTIAL
+  GOOGLE
 }

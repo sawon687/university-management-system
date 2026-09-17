@@ -1,9 +1,9 @@
 model CourseMarks {
-  id              String @id @default(cuid())
+  id String @id @default(uuid())
 
-  studentId       String
-  courseId        String
-  semesterId      String
+  studentId  String
+  courseId   String
+  semesterId String
 
   attendanceMarks Float @default(0)
   assignmentMarks Float @default(0)

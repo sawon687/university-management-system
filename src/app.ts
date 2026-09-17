@@ -9,6 +9,8 @@ import { paymentRouter } from './module/payment/payment.routes'
 import PaymentController from './module/payment/Payment.controller'
 import { auth } from './midileware/auth'
 import { UserRoutes } from './module/user/user.routes'
+import { globalErrorHandler } from './midileware/golobalError'
+import path from 'path'
 
 
 
@@ -31,5 +33,12 @@ app.use('/api/v1/admin',adminRouter)
 app.use('/api/v1/teacher',teacherRouter)
 app.use('/api/v1/payments/',paymentRouter)
 app.use('/api/v1/user/',UserRoutes)
+app.set("view engine", "ejs");
+app.set("views", path.join(process.cwd(), "src/templates"));
+app.get('/google-login',(req,res)=>{
+    res.render('googlelogin')
+})
+
+app.use(globalErrorHandler)
 
 export default app

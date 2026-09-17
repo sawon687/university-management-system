@@ -1,5 +1,5 @@
 model Payment {
-  id     String @id @default(uuid())
+  id     String  @id @default(uuid())
   userId String
   feeId  String?
 
@@ -8,9 +8,9 @@ model Payment {
   paymentMethod PaymentMethod
   paymentStatus PaymentStatus @default(PENDING)
 
-  transactionId String? @unique
-  admissionId   String? @unique
-  paidAt DateTime?
+  transactionId String?   @unique
+  admissionId   String?   @unique
+  paidAt        DateTime?
 
   user      Users                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   fee       Fee?                  @relation(fields: [feeId], references: [id])

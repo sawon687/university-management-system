@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Student Google Login</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div
+      class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100 text-center"
+    >
+      <!-- Title -->
+      <h2 class="text-2xl font-bold text-slate-800">Student Login</h2>
+
+      <p class="text-sm text-slate-500 mt-1 mb-6">
+        Sign in with your Google account
+      </p>
+
+      <!-- Google Login -->
+      <div
+        id="g_id_onload"
+        data-client_id="1013479188501-r84rkgj4439hf62jdb8f9qntmorogf4j.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+      ></div>
+
+      <div class="flex justify-center mb-4">
+        <div
+          class="g_id_signin"
+          data-type="standard"
+          data-size="large"
+          data-theme="outline"
+          data-text="signin_with"
+        ></div>
+      </div>
+
+      <!-- Status Message -->
+      <div
+        id="statusMessage"
+        class="hidden text-sm font-medium p-3 rounded-lg mt-4"
+      ></div>
+
+      <!-- Google ID Token -->
+      <div id="tokenContainer" class="hidden text-left mt-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block text-xs font-semibold text-slate-500">
+            Google ID Token:
+          </label>
+
+          <button
+            onclick="copyToken()"
+            id="copyBtn"
+            class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold focus:outline-none flex items-center gap-1"
+          >
+            📋 Copy Token
+          </button>
+        </div>
+
+        <textarea
+          id="googleIdTokenInput"
+          readonly
+          rows="4"
+          class="w-full text-xs font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none resize-none break-all text-slate-700"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
+
+    <script>
+      async function handleCredentialResponse(response) {
+        const statusMsg = document.getElementById("statusMessage");
+
+        const tokenContainer = document.getElementById("tokenContainer");
+
+        const googleIdTokenInput =
+          document.getElementById("googleIdTokenInput");
+
+        statusMsg.className =
+          "text-sm font-medium p-3 rounded-lg mt-4 bg-blue-50 text-blue-600 block";
+
+        statusMsg.innerText = "Authenticating with backend...";
+
+        tokenContainer.classList.add("hidden");
+
+        const googleIdToken = response.credential;
+
+        // Save token temporarily
+        localStorage.setItem("googleIdToken", googleIdToken);
+
+        try {
+          const res = await fetch(
+            "http://localhost:8000/api/v1/auth/google-login",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json",
+              },
+
+              body: JSON.stringify({
+                idToken: googleIdToken,
+                
+              }),
+            },
+          );
+
+          const result = await res.json();
+
+          if (res.ok && result.success) {
+             
+            googleIdTokenInput.value = googleIdToken;
+
+            tokenContainer.classList.remove("hidden");
+
+            statusMsg.className =
+              "text-sm font-medium p-3 rounded-lg mt-4 bg-emerald-50 text-emerald-600 block";
+
+            statusMsg.innerText =
+              "Google Authentication Successful as STUDENT!";
+          } else {
+            throw new Error(result.message || "Login failed");
+          }
+        } catch (error) {
+          statusMsg.className =
+            "text-sm font-medium p-3 rounded-lg mt-4 bg-red-50 text-red-600 block";
+
+          statusMsg.innerText = "Error: " + error.message;
+        }
+      }
+
+      function copyToken() {
+        const tokenInput = document.getElementById("googleIdTokenInput");
+
+        const copyBtn = document.getElementById("copyBtn");
+
+        if (!tokenInput.value) return;
+
+        navigator.clipboard.writeText(tokenInput.value).then(() => {
+          copyBtn.innerText = "✅ Copied!";
+
+          copyBtn.classList.replace("text-indigo-600", "text-emerald-600");
+
+          setTimeout(() => {
+            copyBtn.innerText = "📋 Copy Token";
+
+            copyBtn.classList.replace("text-emerald-600", "text-indigo-600");
+          }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>

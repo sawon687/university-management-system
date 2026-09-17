@@ -1,19 +1,20 @@
 model Semester {
-  id                String       @id @default(uuid())
-  name              SemesterCode       
-  year              Int          // 2026
-  startDate         DateTime
-  endDate           DateTime
-  registrationOpen  Boolean      @default(false)
+  id               String       @id @default(uuid())
+  name             SemesterCode
+  year             Int // 2026
+  startDate        DateTime
+  endDate          DateTime
+  registrationOpen Boolean      @default(false)
 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  fees              Fee[]
-  enrollments       Enrollment[]
-  CourseAssign       CourseAssignt[]
-  exam                Exam[]
-  gpaResult           GPAResult[]
-  courseResult         CourseMarks[]
-  @@unique([name,year])
+  fees         Fee[]
+  enrollments  Enrollment[]
+  CourseAssign CourseAssignt[]
+  exam         Exam[]
+  gpaResult    GPAResult[]
+  courseResult CourseMarks[]
+
+  @@unique([name, year])
 }

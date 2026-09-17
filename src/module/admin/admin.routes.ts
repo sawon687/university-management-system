@@ -24,6 +24,7 @@ router.post('/course/:id/assign',adminController.courseTeacherAssign)
 router.get('/all-course', adminController.getALLcourse)
 router.get('/all-semester',adminController.getALLSemester)
 router.get('/dashboard-stats',auth('ADMIN'),adminController.dashboardStats)
+router.patch('/users/:id/role',)
 
 
 

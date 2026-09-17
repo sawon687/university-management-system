@@ -4,12 +4,13 @@ import randomInt from "random-int";
 import bcrypt from "bcrypt";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
-import { Role, StudentStatus } from "../../../generated/prisma/enums";
+import { AuthProvider, Role, StudentStatus } from "../../../generated/prisma/enums";
 import ejs from "ejs";
 import path from "node:path";
 import { transporter } from "../../lib/nodemiler";
 import { jwtUtils } from '../../utils/jwt';
 import { SignOptions } from 'jsonwebtoken';
+import { googleClient } from '../../lib/googleAuth';
 
 class AuthService {
   async createDB(payload:IUser) {
@@ -121,8 +122,6 @@ class AuthService {
 
      const userExits=await prisma.users.findUnique({where:{
        email
-     },omit:{
-     
      }})
 
      if(!userExits)
@@ -166,7 +165,78 @@ class AuthService {
         
          return { accessToken, refreshToken };
   }
-  async getMeDB() {}
+ async googleLoginDB(payload: { idToken: string; role?: string }) {
+    console.log('paylaod',payload)
+  const { idToken, role } = payload;
+
+   
+  if (!idToken) {
+    throw new Error("Token is required");
+  }
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: config.google_client_id,
+  });
+
+  const googleUser = ticket.getPayload();
+
+  if (!googleUser || !googleUser.email) {
+    throw new Error("Invalid Google Token");
+  }
+     
+  let user = await prisma.users.findUnique({
+    where: {
+      email: googleUser.email,
+    },
+  });
+
+
+
+    if (!user) {
+      throw new Error('user not found Pleace Register')
+  }
+
+    if(user.role===Role.INSTRUCTOR)
+    {
+       throw new Error('Instructor  not google login and register')
+    }
+
+  if (user.authProvider!==AuthProvider.GOOGLE) {
+
+    user = await prisma.users.update({where:{email: googleUser.email},
+      data: {
+     
+        authProvider: AuthProvider.GOOGLE,
+        googleId: googleUser.sub,
+  
+      },
+    });
+  }
+
+  const jwtPayload = {
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    department:user.departmentId
+    
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.accessSecret,
+    { expiresIn: config.jwt_access_Expires } as SignOptions,
+  );
+
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.refreshSecret,
+    { expiresIn: config.jwt_refresh_Expires } as SignOptions,
+  );
+
+  return { accessToken, refreshToken };
+};
 }
 
 export default new AuthService();

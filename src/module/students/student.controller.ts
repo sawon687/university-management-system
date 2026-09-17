@@ -132,7 +132,7 @@ class StudentController extends BaseController {
   });
 
   getAllcourses=this.handle(async(req:Request,res:Response)=>{
-     const  departmentId=req.user?.departmentId
+     const  departmentId=req.user?.departmentId as string
      const query=req.query
      const paylaod={
       ...query,

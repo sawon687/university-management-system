@@ -22,7 +22,6 @@ model AdmissionApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   payments  Payment?
-  
 
   @@index([userId])
   @@index([programId])

@@ -49,6 +49,35 @@ class AuthController extends BaseController{
        me=this.handle(async(req:Request,res:Response)=>{
         
     })
+
+
+   googleLogin =this.handle(async (req: Request, res: Response) => {
+        console.log('googleLogin',req.body)
+  const result = await authService.googleLoginDB(req.body);
+
+  const { accessToken, refreshToken } = result;
+
+  res.cookie("accessToken", accessToken, {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "none",
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "none",
+  });
+
+  sendResponse(res, {
+    success: true,
+    message: "Google login successful!",
+    status:statusCode.OK,
+    data: { accessToken, refreshToken },
+  });
+
+});
+
 }
 
 

@@ -15,7 +15,7 @@ model InstructorProfile {
   experience     String?
   profilePhoto   String?
 
-  user       Users      @relation("instructorProfile",fields: [userId], references: [id], onDelete: Cascade)
+  user       Users      @relation("instructorProfile", fields: [userId], references: [id], onDelete: Cascade)
   department Department @relation(fields: [departmentId], references: [id])
 
   createdAt DateTime @default(now())

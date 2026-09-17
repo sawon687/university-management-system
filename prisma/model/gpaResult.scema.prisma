@@ -1,7 +1,7 @@
 model GPAResult {
-  id          String   @id @default(cuid())
-  studentId   String
-  semesterId  String
+  id         String @id @default(uuid())
+  studentId  String
+  semesterId String
 
   totalCredits Float
   totalPoints  Float

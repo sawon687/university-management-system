@@ -2,7 +2,7 @@ import { z } from "zod";
 
 
 
-const userLoginValidationSchema = z.object({
+const userRegisterValidationSchema = z.object({
   body: z.object({
     name: z
       .string()
@@ -48,14 +48,14 @@ const userLoginValidationSchema = z.object({
         }
       }),
 
-   department: z
+ departmentId: z
   .string()
   .trim()
-  .min(1, "Please select a department"),
+  .uuid("Please select a valid department"),
 
   }),
 });
 
 export const authValidation = {
-  userLoginValidationSchema,
+  userRegisterValidationSchema,
 };

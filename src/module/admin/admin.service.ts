@@ -91,7 +91,7 @@ class AdminService {
         name,
         email,
         role: Role.INSTRUCTOR,
-
+        departmentId,
         instructorProfile: {
           create: {
             teacherCode: `Tch-${crypto.randomUUID()}`,
@@ -359,6 +359,13 @@ class AdminService {
       ]);
 
     return { userCount, studentCoutn, instructorCount, TotalMoney };
+  }
+
+
+   async updateUserAdminRole(id:string,role:Role) {
+  
+      
+    
   }
 }
 

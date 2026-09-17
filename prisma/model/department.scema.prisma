@@ -9,6 +9,6 @@ model Department {
   program   Program[]
   course    Course[]
   user      Users[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 }

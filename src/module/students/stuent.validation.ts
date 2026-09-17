@@ -11,7 +11,7 @@ export const studentProfileValidationSchema = z.object({
       message: "Invalid gender",
     }),
 
-    dateOfBirth: z.coerce.date({
+    dateOfBirth: z.string({
       message: "Valid date of birth is required",
     }),
 
@@ -20,58 +20,52 @@ export const studentProfileValidationSchema = z.object({
       .trim()
       .min(1, "Address is required"),
 
-    departmentId: z
-      .string()
-      .trim()
-      .min(1, "Department is required")
-      .optional(),
+
   }),
 });
 
 
+const admissionBodySchema = z.object({
+  body: z
+    .object({
+      programId: z.string().uuid("Program ID is required"),
 
-const admissionBodySchema = z
-  .object({
-    userId: z.string().min(1, "User ID is required"),
+      previousDegree: z
+        .string()
+        .trim()
+        .min(1, "Previous degree is required"),
 
-    programId: z.string().min(1, "Program ID is required"),
+      previousInstitution: z
+        .string()
+        .trim()
+        .min(1, "Previous institution is required"),
 
-    previousDegree: z
-      .string()
-      .trim()
-      .min(1, "Previous degree is required"),
+      sscResult: z
+        .number()
+        .min(0)
+        .max(5),
 
-    previousInstitution: z
-      .string()
-      .trim()
-      .min(1, "Previous institution is required"),
+      hscResult: z
+        .number()
+        .min(0)
+        .max(5)
+        .optional(),
 
-    sscResult: z
-      .number()
-      .min(0)
-      .max(5),
-
-    hscResult: z
-      .number()
-      .min(0)
-      .max(5)
-      .optional(),
-
-    diplomaResult: z
-      .number()
-      .min(0)
-      .max(4)
-      .optional(),
-  })
-  .refine(
-    (data) =>
-      data.hscResult !== undefined ||
-      data.diplomaResult !== undefined,
-    {
-      message: "Either HSC result or Diploma result is required",
-    },
-  );
-
+      diplomaResult: z
+        .number()
+        .min(0)
+        .max(4)
+        .optional(),
+    })
+    .refine(
+      (data) =>
+        data.hscResult !== undefined ||
+        data.diplomaResult !== undefined,
+      {
+        message: "Either HSC result or Diploma result is required",
+      },
+    ),
+});
 
  const studentEnrollmentValidationSchema = z.object({
   body: z.object({

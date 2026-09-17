@@ -6,11 +6,11 @@ import {
   Prisma,
 } from "../../../generated/prisma/client";
 import {
-  AdmissionApplicationWhereInput,
+
   CourseWhereInput,
   FeeWhereInput,
   ProgramWhereInput,
-  UsersWhereInput,
+
 } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/pirsma";
 import {
@@ -21,12 +21,11 @@ import {
   IStudentProfile,
 } from "./students.interface";
 
+
 class StudentService {
-  async updateProfileDB(paylaod: IStudentProfile) {
-    const { phone, gender, dateOfBirth, address, studentId, departmentId } =
-      paylaod as IStudentProfile & {
-        departmentId: string;
-      };
+  async updateProfileDB(payload: IStudentProfile) {
+    const { phone, gender, dateOfBirth, address, studentId, } =payload
+     
 
     const result = await prisma.studentProfile.upsert({
       where: {
@@ -38,7 +37,6 @@ class StudentService {
         dateOfBirth,
         address,
         studentId,
-        departmentId,
       },
       update: {
         phone,
@@ -316,7 +314,7 @@ class StudentService {
 
     whereConditon.studentId = userId;
     if (semesterId) {
-      whereConditon.semesterId = semesterId;
+      whereConditon.semesterId = semesterId.trim();
     }
 
     const result = await prisma.fee.findMany({ where: whereConditon });
@@ -328,7 +326,16 @@ class StudentService {
     const result = await prisma.enrollment.findMany({
       where: { studentId: id },
       include: {
-        Enrolementcourses: true,
+        Enrolementcourses:{
+           include:{
+              course:{
+                 select:{
+                   title:true
+                 }
+              }
+           }
+        },
+
       },
     });
 
