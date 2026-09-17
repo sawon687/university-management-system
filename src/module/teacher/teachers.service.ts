@@ -22,9 +22,11 @@ class Teachers {
 			throw new Error("confirm password doesnot match");
 		}
 
-		if (!redisToken) {
+		if (typeof redisToken !=="string") {
 			throw new Error("Token is invalid or expired");
 		}
+
+
 
 		const tokenPaylod: ITokenPyalod = JSON.parse(redisToken);
 

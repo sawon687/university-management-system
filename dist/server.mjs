@@ -1,7 +1,3 @@
-
-   import { createRequire } from 'module';
-   const require = createRequire(import.meta.url);
-  
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -555,9 +551,9 @@ var transporter = nodemailer.createTransport({
 
 // src/utils/jwt.ts
 import jwt from "jsonwebtoken";
-var createToken = (payload, secret, expiresIn) => {
+var createToken = (payload, secret, options) => {
   try {
-    const token = jwt.sign(payload, secret, expiresIn);
+    const token = jwt.sign(payload, secret, options);
     return token;
   } catch (error) {
     console.log(error);
@@ -599,7 +595,7 @@ var AuthService = class {
     if (userExits) {
       throw new Error("This Email Already Created");
     }
-    if (payload.role === "INSTRUCTOR") {
+    if (payload.role === Role.INSTRUCTOR) {
       throw new Error("This instuctor not create normal users");
     }
     const otpkey = `otpkey:${payload.email}`;
@@ -654,7 +650,7 @@ var AuthService = class {
       throw new Error("User Already Verified");
     }
     const RedisUserPayload = await redisClient.get(userKey);
-    if (!RedisUserPayload) {
+    if (typeof RedisUserPayload !== "string") {
       throw new Error("User registration data not found or expired");
     }
     const userPayload = JSON.parse(RedisUserPayload);
@@ -2433,7 +2429,7 @@ var Teachers = class {
     if (password !== confirmPassword) {
       throw new Error("confirm password doesnot match");
     }
-    if (!redisToken) {
+    if (typeof redisToken !== "string") {
       throw new Error("Token is invalid or expired");
     }
     const tokenPaylod = JSON.parse(redisToken);

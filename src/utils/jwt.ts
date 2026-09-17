@@ -1,11 +1,11 @@
-import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 const createToken = (
 	payload: JwtPayload,
 	secret: string,
-	expiresIn: SignOptions,
+	options: SignOptions,
 ) => {
 	try {
-		const token = jwt.sign(payload, secret, expiresIn as SignOptions);
+		const token = jwt.sign(payload, secret, options as SignOptions);
 		return token;
 	} catch (error) {
 		console.log(error);
