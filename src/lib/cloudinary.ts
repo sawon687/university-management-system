@@ -1,8 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
-import config from '../config';
+import config from "../config";
 
 cloudinary.config({
- cloudinary_api_secret: config.cloudinary_cloud_name,
+	cloudinary_api_secret: config.cloudinary_cloud_name,
 	api_key: config.cloudinary_api_key,
 	api_secret: config.cloudinary_api_secret,
 });

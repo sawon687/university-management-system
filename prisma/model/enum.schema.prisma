@@ -4,19 +4,14 @@ enum Role {
   ADMIN
 }
 
-enum StudentStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  GRADUATED
-  SUSPENDED
-  DROPPED
-}
 
 enum UserStatus {
   ACTIVE
   INACTIVE
   PENDING
+  GRADUATED
+  SUSPENDED
+  DROPPED
 }
 
 enum Gender {

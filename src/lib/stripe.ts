@@ -1,6 +1,4 @@
+import Stripe from "stripe";
+import config from "../config";
 
-import Stripe from 'stripe'
-import config from '../config'
-
-
-export const stripe = new Stripe(config.stripe_secret_Key as string)
+export const stripe = new Stripe(config.stripe_secret_Key as string);

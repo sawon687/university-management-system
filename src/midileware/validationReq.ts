@@ -1,25 +1,24 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BaseController } from "../utils/catchAsync";
-import z from "zod";
+import type z from "zod";
 class ValidationReq extends BaseController {
-  validate(schema: z.ZodObject<any>) {
-    return this.handle((req: Request, _res: Response, next: NextFunction) => {
-      const payload = {
-        body: req.body ?? {},
-      };
+	validate(schema: z.ZodObject<any>) {
+		return this.handle((req: Request, _res: Response, next: NextFunction) => {
+			const payload = {
+				body: req.body ?? {},
+			};
 
-      const result = schema.safeParse(payload);
+			const result = schema.safeParse(payload);
 
-      if (!result.success) {
-       
-        throw result.error;
-      }
+			if (!result.success) {
+				throw result.error;
+			}
 
-      req.body = result.data.body;
+			req.body = result.data.body;
 
-      next();
-    });
-  }
+			next();
+		});
+	}
 }
 
 export const validationReq = new ValidationReq();

@@ -1,192 +1,135 @@
 import { z } from "zod";
 const createDepartmentValidationSchema = z.object({
-  body: z.object({
-    name: z
-      .string()
-      .trim()
-      .min(1, "Department name is required"),
+	body: z.object({
+		name: z.string().trim().min(1, "Department name is required"),
 
-    code: z
-      .string()
-      .trim()
-      .min(1, "Department code is required")
-      .max(20, "Department code is too long"),
+		code: z
+			.string()
+			.trim()
+			.min(1, "Department code is required")
+			.max(20, "Department code is too long"),
 
-    description: z
-      .string()
-      .trim()
-      .min(1, "Description is required"),
-  }),
+		description: z.string().trim().min(1, "Description is required"),
+	}),
 });
 
 const createProgramValidationSchema = z.object({
-  body: z.object({
-    semester: z.number().int().positive(),
+	body: z.object({
+		semester: z.number().int().positive(),
 
-    semesterType: z.string().min(1, "Semester type is required"),
+		semesterType: z.string().min(1, "Semester type is required"),
 
-    duration: z.number().positive(),
+		duration: z.number().positive(),
 
-    departmentId: z.string().uuid("Invalid department ID"),
+		departmentId: z.string().uuid("Invalid department ID"),
 
-    degreeType: z.string().min(1, "Degree type is required"),
+		degreeType: z.string().min(1, "Degree type is required"),
 
-    description: z.string().trim().min(1, "Description is required"),
+		description: z.string().trim().min(1, "Description is required"),
 
-    totalCredits: z.number().positive(),
+		totalCredits: z.number().positive(),
 
-    tuitionFee: z.number().nonnegative(),
+		tuitionFee: z.number().nonnegative(),
 
-    name: z.string().trim().min(1, "Program name is required"),
+		name: z.string().trim().min(1, "Program name is required"),
 
-    code: z.string().trim().min(1, "Program code is required"),
+		code: z.string().trim().min(1, "Program code is required"),
 
-    admissionFee: z.number().nonnegative(),
+		admissionFee: z.number().nonnegative(),
 
-    isActive: z.boolean(),
+		isActive: z.boolean(),
 
-    perCreditFee: z.number().nonnegative(),
+		perCreditFee: z.number().nonnegative(),
 
-    totalFee: z.number().nonnegative(),
-  }),
+		totalFee: z.number().nonnegative(),
+	}),
 });
 
 const updateApplicationStatusValidationSchema = z.object({
-  body: z.object({
-    status: z.enum([
-      "PENDING",
-      "APPROVED",
-      "REJECTED",
-      "PAID",
-    ]),
-  }),
+	body: z.object({
+		status: z.enum(["PENDING", "APPROVED", "REJECTED", "PAID"]),
+	}),
 
-  params: z.object({
-    id: z.string().uuid("Invalid application ID"),
-  }),
+	params: z.object({
+		id: z.string().uuid("Invalid application ID"),
+	}),
 });
 const updateUserStatusValidationSchema = z.object({
-  body: z.object({
-    status: z.enum([
-      "PENDING",
-      "ACTIVE",
-      "INACTIVE",
-      "GRADUATED",
-      "SUSPENDED",
-      "DROPPED",
-    ]),
-  }),
+	body: z.object({
+		status: z.enum([
+			"PENDING",
+			"ACTIVE",
+			"INACTIVE",
+			"GRADUATED",
+			"SUSPENDED",
+			"DROPPED",
+		]),
+	}),
 
-  params: z.object({
-    id: z.string().uuid("Invalid user ID"),
-  }),
+	params: z.object({
+		id: z.string().uuid("Invalid user ID"),
+	}),
 });
 const createCourseValidationSchema = z.object({
-  body: z.object({
-    code: z
-      .string()
-      .trim()
-      .min(1, "Course code is required"),
+	body: z.object({
+		code: z.string().trim().min(1, "Course code is required"),
 
-    departmentId: z
-      .string()
-      .uuid("Invalid department ID"),
+		departmentId: z.string().uuid("Invalid department ID"),
 
-    description: z
-      .string()
-      .trim()
-      .min(1, "Description is required"),
+		description: z.string().trim().min(1, "Description is required"),
 
-    title: z
-      .string()
-      .trim()
-      .min(1, "Course title is required"),
+		title: z.string().trim().min(1, "Course title is required"),
 
-    programId: z
-      .string()
-      .uuid("Invalid program ID"),
+		programId: z.string().uuid("Invalid program ID"),
 
-    credit: z
-      .number()
-      .positive("Credit must be greater than 0"),
+		credit: z.number().positive("Credit must be greater than 0"),
 
-    semesterNumber: z
-      .number()
-      .int()
-      .positive(),
-  }),
+		semesterNumber: z.number().int().positive(),
+	}),
 });
 
 const createPrerequisiteValidationSchema = z.object({
-  body: z.object({
-    courseId: z
-      .string()
-      .uuid("Invalid course ID"),
+	body: z.object({
+		courseId: z.string().uuid("Invalid course ID"),
 
-    prerequisiteCourseId: z
-      .string()
-      .uuid("Invalid prerequisite course ID"),
-  }),
+		prerequisiteCourseId: z.string().uuid("Invalid prerequisite course ID"),
+	}),
 });
 
 const createSemesterValidationSchema = z.object({
-  body: z.object({
-    name: z.string().trim().min(1, "Semester name is required"),
+	body: z.object({
+		name: z.string().trim().min(1, "Semester name is required"),
 
-    year: z
-      .number()
-      .int()
-      .min(2000),
+		year: z.number().int().min(2000),
 
-    startDate: z.coerce.date({
-      message: "Invalid start date",
-    }),
+		startDate: z.coerce.date({
+			message: "Invalid start date",
+		}),
 
-    endDate: z.coerce.date({
-      message: "Invalid end date",
-    }),
-  }),
-});
-
-const updateSemesterValidationSchema = z.object({
-  body: z.object({
-    startDate: z.coerce.date().optional(),
-
-    endDate: z.coerce.date().optional(),
-
-    registrationOpen: z.boolean().optional(),
-  }),
-
-  params: z.object({
-    id: z.string().uuid("Invalid semester ID"),
-  }),
+		endDate: z.coerce.date({
+			message: "Invalid end date",
+		}),
+	}),
 });
 
 const courseTeacherAssignValidationSchema = z.object({
-  body: z.object({
-    semesterId: z
-      .string()
-      .uuid("Invalid semester ID"),
+	body: z.object({
+		semesterId: z.string().uuid("Invalid semester ID"),
 
-    instructorId: z
-      .string()
-      .uuid("Invalid instructor ID"),
-  }),
+		instructorId: z.string().uuid("Invalid instructor ID"),
+	}),
 
-  params: z.object({
-    id: z.string().uuid("Invalid course ID"),
-  }),
+	params: z.object({
+		id: z.string().uuid("Invalid course ID"),
+	}),
 });
-export const adminValidation={
-    createDepartmentValidationSchema,
-    createProgramValidationSchema,
-    updateApplicationStatusValidationSchema,
-    updateUserStatusValidationSchema,
-    createCourseValidationSchema,
-     createPrerequisiteValidationSchema,
-     createSemesterValidationSchema,
-     updateSemesterValidationSchema,
-     courseTeacherAssignValidationSchema
-}
-
-
+export const adminValidation = {
+	createDepartmentValidationSchema,
+	createProgramValidationSchema,
+	updateApplicationStatusValidationSchema,
+	updateUserStatusValidationSchema,
+	createCourseValidationSchema,
+	createPrerequisiteValidationSchema,
+	createSemesterValidationSchema,
+	courseTeacherAssignValidationSchema,
+};

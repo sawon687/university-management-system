@@ -5,7 +5,6 @@ model StudentProfile {
   gender        String
   address       String
   profilePhoto  String?
-  studentStatus StudentStatus @default(PENDING)
   studentId     String        @unique
   user          Users         @relation("studentProfile", fields: [studentId], references: [id], onDelete: Cascade)
   departmentId  String

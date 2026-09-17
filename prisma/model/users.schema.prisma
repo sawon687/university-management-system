@@ -6,7 +6,7 @@ model Users {
   password          String?
   emailVerified     Boolean               @default(false)
   role              Role                  @default(STUDENT)
-  status            StudentStatus         @default(PENDING)
+  userStatus         UserStatus           @default(PENDING)
   authProvider      AuthProvider          @default(CREDENTIAL)
   imageUrl          String                @default("")
   imagePublicId     String                @default("")
@@ -27,6 +27,5 @@ model Users {
   gpaResult         GPAResult[]
   corseResult       CourseMarks[]         @relation("studentCourseResult")
   enrolledment      Enrollment[]
-  isDeleted         Boolean               @default(false)
   auditLog          AuditLog[]
 }

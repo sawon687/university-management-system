@@ -6,7 +6,11 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format:check": "npx @biomejs/biome format ./src",
+    "format:fix": "npx @biomejs/biome format --write ./src",
+    "lint:check": "npx @biomejs/biome lint ./src",
+    "lint:fix": "npx @biomejs/biome lint --write ./src"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
@@ -37,9 +41,11 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
     "@types/ejs": "^3.1.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.23.13"
   }
 }

@@ -1,73 +1,72 @@
-
 import type { NextFunction, Request, Response } from "express";
 import config from "../config";
 import { ZodError } from "zod";
 import { Prisma } from "../../generated/prisma/client";
 
 export const globalErrorHandler = (
-  err: any,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
+	err: any,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
 ) => {
-  if (config.node_env === "development") {
-    console.log("Error from Global Error Handler:", err);
-  }
+	if (config.node_env === "development") {
+		console.log("Error from Global Error Handler:", err);
+	}
 
-  let statusCode = 500;
-  let errorMessage = "Something went wrong";
+	let statusCode = 500;
+	let errorMessage = "Something went wrong";
 
-  const errors: unknown[] = [];
+	const errors: unknown[] = [];
 
-  // Zod Error
-  if (err instanceof ZodError) {
-    statusCode = 400;
-    errorMessage = "Validation Error";
-      
-    errors.push(
-      ...err.issues.map((issue) => ({
-        path: issue.path.join("."),
-        message: issue.message,
-      })),
-    );
+	// Zod Error
+	if (err instanceof ZodError) {
+		statusCode = 400;
+		errorMessage = "Validation Error";
 
-    // Prisma Validation Error
-  } else if (err instanceof Prisma.PrismaClientValidationError) {
-    statusCode = 400;
-    errorMessage = "Invalid data provided";
+		errors.push(
+			...err.issues.map((issue) => ({
+				path: issue.path.join("."),
+				message: issue.message,
+			})),
+		);
 
-    // Prisma Known Request Error
-  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === "P2002") {
-      statusCode = 409;
-      errorMessage = "User already exists";
-    } else if (err.code === "P2003") {
-      statusCode = 400;
-      errorMessage = "Foreign key constraint failed";
-    } else if (err.code === "P2025") {
-      statusCode = 404;
-      errorMessage = "Requested record was not found";
-    }
+		// Prisma Validation Error
+	} else if (err instanceof Prisma.PrismaClientValidationError) {
+		statusCode = 400;
+		errorMessage = "Invalid data provided";
 
-    // Prisma Initialization Error
-  } else if (err instanceof Prisma.PrismaClientInitializationError) {
-    statusCode = 500;
-    errorMessage = "Database connection failed";
+		// Prisma Known Request Error
+	} else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+		if (err.code === "P2002") {
+			statusCode = 409;
+			errorMessage = "User already exists";
+		} else if (err.code === "P2003") {
+			statusCode = 400;
+			errorMessage = "Foreign key constraint failed";
+		} else if (err.code === "P2025") {
+			statusCode = 404;
+			errorMessage = "Requested record was not found";
+		}
 
-    // Prisma Unknown Error
-  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-    statusCode = 500;
-    errorMessage = "Error occurred during query execution";
+		// Prisma Initialization Error
+	} else if (err instanceof Prisma.PrismaClientInitializationError) {
+		statusCode = 500;
+		errorMessage = "Database connection failed";
 
-    // Normal Error
-  } else if (err instanceof Error) {
-    statusCode = 400;
-    errorMessage = err.message;
-  }
+		// Prisma Unknown Error
+	} else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+		statusCode = 500;
+		errorMessage = "Error occurred during query execution";
 
-  res.status(statusCode).json({
-    success: false,
-    message: errorMessage,
-    errors,
-  });
+		// Normal Error
+	} else if (err instanceof Error) {
+		statusCode = 400;
+		errorMessage = err.message;
+	}
+
+	res.status(statusCode).json({
+		success: false,
+		message: errorMessage,
+		errors,
+	});
 };
