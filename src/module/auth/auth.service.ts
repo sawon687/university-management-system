@@ -100,7 +100,7 @@ class AuthService {
 				email: userPayload.email,
 				password: userPayload.password,
 				role: Role.STUDENT,
-				userStat: UserStatus.ACTIVE,
+				userStatus: UserStatus.ACTIVE,
 				emailVerified: true,
 				isEnrolled: false,
 			},
