@@ -100,10 +100,13 @@ class AuthService {
 				email: userPayload.email,
 				password: userPayload.password,
 				role: Role.STUDENT,
-				userStatus: UserStatus.ACTIVE,
+				userStat: UserStatus.ACTIVE,
 				emailVerified: true,
 				isEnrolled: false,
 			},
+			omit:{
+				password:true
+			}
 		});
 
 		await redisClient.del(otpkey);
