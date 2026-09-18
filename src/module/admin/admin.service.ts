@@ -482,10 +482,63 @@ class AdminService {
     });
     return result;
   }
+
+  async userDeletedDB(id: string,  adminId: string) {
+     if(id)
+     {
+       throw new Error ('user id is Emptay')
+     }
+    const oldUser = await prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+         isDeleted: true,
+
+      },
+    });
+
+    if (!oldUser) {
+      throw new Error("User not found");
+    }
+      if (oldUser.isDeleted) {
+    throw new Error("User is already deleted");
+  }
+
+
+    const result = await prisma.$transaction(async (tx) => {
+      const result = await tx.users.update({
+        where: { id },
+        data: {
+          isDeleted:true
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: "User Deleted",
+          resource: "USER",
+          resourceId: id,
+
+          oldData: {
+            isDeleted:false
+          },
+
+          newData: {
+            isDeleted: result.isDeleted,
+          },
+        },
+      });
+      return result
+    });
+    return result;
+  }
   async auditLogDB() {
     const result = await prisma.auditLog.findMany();
     return result;
   }
+
+  
 }
 
 export default new AdminService();

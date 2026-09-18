@@ -16,5 +16,6 @@ router.post(
 router.post("/verified-email",authLimiter, authController.verifayAccount);
 router.post("/login",authLimiter, authController.login);
 router.post("/google-login", authController.googleLogin);
+router.post('/refresh-token',authController.refreshToken)
 
 export const authRouter = router;

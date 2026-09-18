@@ -9,8 +9,20 @@ import PaymentController from "./module/payment/Payment.controller";
 import { UserRoutes } from "./module/user/user.routes";
 import { globalErrorHandler } from "./midileware/golobalError";
 import path from "path";
+import helmet from "helmet";
+
 
 const app: Application = express();
+import cors from "cors";
+import config from './config';
+
+app.use(
+  cors({
+    origin:config.appurl,
+    credentials: true,
+  })
+);
+app.use(helmet());
 app.use(cookie());
 app.use(
 	"/api/v1/payments/webhook",

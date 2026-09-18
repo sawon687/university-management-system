@@ -74,6 +74,7 @@ router.get("/all-course", auth("ADMIN"), adminController.getALLcourse);
 router.get("/all-semester", adminController.getALLSemester);
 router.get("/dashboard-stats", auth("ADMIN"), adminController.dashboardStats);
 router.patch("/users/:id/role", auth("ADMIN"), adminController.userUpdateRole);
+router.delete("/users/:id", auth("ADMIN"),adminController.userDelete);
 router.get("/audit-logs", auth("ADMIN"), adminController.auditlog);
 
 export const adminRouter = router;

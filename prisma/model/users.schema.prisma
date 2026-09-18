@@ -28,4 +28,6 @@ model Users {
   corseResult       CourseMarks[]         @relation("studentCourseResult")
   enrolledment      Enrollment[]
   auditLog          AuditLog[]
+  deletedAt DateTime? 
+  isDeleted Boolean @default(false)
 }
