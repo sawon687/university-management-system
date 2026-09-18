@@ -1,7 +1,8 @@
 {
+ 
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsup src/server.ts",
+    "build": "prisma generate && tsup src/server.ts",
     "start": "node dist/server.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -12,6 +13,7 @@
     "lint:check": "npx @biomejs/biome lint ./src",
     "lint:fix": "npx @biomejs/biome lint --write ./src"
   },
+
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/adapter-ppg": "^7.10.0",
