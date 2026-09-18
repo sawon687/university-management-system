@@ -493,9 +493,7 @@ class AdminService {
       select: {
         id: true,
          isDeleted: true,
-
-      },
-    });
+    }});
 
     if (!oldUser) {
       throw new Error("User not found");
@@ -509,7 +507,8 @@ class AdminService {
       const result = await tx.users.update({
         where: { id },
         data: {
-          isDeleted:true
+          isDeleted:true,
+          deletedAt:new Date()
         },
       });
 

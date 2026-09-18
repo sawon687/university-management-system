@@ -10,11 +10,11 @@ import { UserRoutes } from "./module/user/user.routes";
 import { globalErrorHandler } from "./midileware/golobalError";
 import path from "path";
 import helmet from "helmet";
-
-
-const app: Application = express();
 import cors from "cors";
 import config from './config';
+
+const app: Application = express();
+
 
 app.use(
   cors({
