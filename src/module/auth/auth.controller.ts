@@ -88,6 +88,8 @@ class AuthController extends BaseController {
     if (!req.cookies.refreshToken) {
       throw new Error("Refresh token is missing");
     }
+    console.log('refrsh token',req.cookies.refreshToken)
+
     const result = await authService.refreshToken(req.cookies.refreshToken);
     const { accessToken, refreshToken: newRefreshToken } = result;
 

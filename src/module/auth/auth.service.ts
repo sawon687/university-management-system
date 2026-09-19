@@ -100,6 +100,7 @@ class AuthService {
         name: userPayload.name,
         email: userPayload.email,
         password: userPayload.password,
+		departmentId:userPayload.departmentId,
         role: Role.STUDENT,
         userStatus: UserStatus.ACTIVE,
         emailVerified: true,
@@ -252,11 +253,13 @@ class AuthService {
     }
 
     const data = verifiedRefreshToken.data as JwtPayload;
+    console.log('data is',data)
 
     const user = await prisma.users.findUnique({
-      where: { id: data.userId },
+      where: { id: data.id },
     });
 
+      console.log('user',user)
     if (!user || user.isDeleted || user.userStatus !== UserStatus.ACTIVE) {
       throw new Error("User is inactive or not found");
     }
@@ -266,6 +269,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      departmentId:user.departmentId
     };
 
     const accessToken = jwtUtils.createToken(
