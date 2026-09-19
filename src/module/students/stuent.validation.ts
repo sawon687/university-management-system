@@ -67,7 +67,7 @@ const studentEnrollmentValidationSchema = z.object({
 					ctx.addIssue({
 						code: "custom",
 						message: "Duplicate course is not allowed",
-						path: [courseIds.indexOf(duplicateIds[0]), "courseId"],
+						path: [courseIds.indexOf(duplicateIds[0]!), "courseId"],
 					});
 				}
 			}),

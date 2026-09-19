@@ -218,7 +218,7 @@ class Admin extends BaseController {
 
 	userDelete = this.handle(async (req: Request, res: Response) => {
 		const id = req.params.id as string;
-		const adminId = req.user?.role as Role;
+		const adminId = req.user?.id as Role;
 		const result = await adminService.userDeletedDB(id, adminId);
 
 		sendResponse(res, {
