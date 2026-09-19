@@ -36,7 +36,7 @@ export const adminSeed = async () => {
 				email,
 				password: passwordHash,
 				role: Role.ADMIN,
-				status: UserStatus.ACTIVE,
+				userStatus: UserStatus.ACTIVE,
 				emailVerified: true,
 			},
 		});

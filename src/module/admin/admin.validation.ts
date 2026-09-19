@@ -47,7 +47,7 @@ const createProgramValidationSchema = z.object({
 
 const updateApplicationStatusValidationSchema = z.object({
 	body: z.object({
-		status: z.enum(["PENDING", "APPROVED", "REJECTED", "PAID"]),
+		status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "PAID"]),
 	}),
 
 	params: z.object({
