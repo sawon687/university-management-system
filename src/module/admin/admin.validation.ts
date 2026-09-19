@@ -46,13 +46,11 @@ const createProgramValidationSchema = z.object({
 });
 
 const updateApplicationStatusValidationSchema = z.object({
-	body: z.object({
-		status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "PAID"]),
-	}),
+  body: z.object({
+    status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "PAID"]),
+  }),
 
-	params: z.object({
-		id: z.string().uuid("Invalid application ID"),
-	}),
+  
 });
 const updateUserStatusValidationSchema = z.object({
 	body: z.object({
@@ -66,9 +64,8 @@ const updateUserStatusValidationSchema = z.object({
 		]),
 	}),
 
-	params: z.object({
-		id: z.string().uuid("Invalid user ID"),
-	}),
+
+	
 });
 const createCourseValidationSchema = z.object({
 	body: z.object({
@@ -119,9 +116,9 @@ const courseTeacherAssignValidationSchema = z.object({
 		instructorId: z.string().uuid("Invalid instructor ID"),
 	}),
 
-	params: z.object({
-		id: z.string().uuid("Invalid course ID"),
-	}),
+
+		
+	
 });
 export const adminValidation = {
 	createDepartmentValidationSchema,

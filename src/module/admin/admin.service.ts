@@ -165,6 +165,9 @@ class AdminService {
 		return result;
 	}
 	async updateStatusApplicationDB(id: string, status: AdmissionStatus) {
+		 if(!id){
+			throw new Error('id is Emptay')
+		 }
 		const result = await prisma.admissionApplication.update({
 			where: { id },
 			data: { status },
@@ -177,6 +180,9 @@ class AdminService {
 			throw new Error("Status is required");
 		}
 
+		if(!id){
+			throw new Error ('user id is empty')
+		}
 		const oldUser = await prisma.users.findUnique({
 			where: { id },
 			select: {

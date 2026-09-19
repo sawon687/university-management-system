@@ -27,7 +27,7 @@ router.post(
 );
 router.patch(
 	"/admissions/:id/status",
-	auth("ADMIN"),
+          auth('ADMIN'),
 	validationReq.validate(
 		adminValidation.updateApplicationStatusValidationSchema,
 	),
