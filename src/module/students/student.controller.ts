@@ -10,7 +10,9 @@ class StudentController extends BaseController {
 	updateme = this.handle(async (req: Request, res: Response) => {
 		const body = req.body;
 		const id = req.user?.id;
+		console.log('id suer',id)
 		const paylaod = { ...body, studentId: id };
+		console.log('payload me',paylaod)
 		const studentProfile = await studentService.updateProfileDB(paylaod);
 
 		sendResponse(res, {

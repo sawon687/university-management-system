@@ -41,6 +41,7 @@ class StudentService {
 				gender,
 				dateOfBirth,
 				address,
+				departmentId,
 			},
 		});
 

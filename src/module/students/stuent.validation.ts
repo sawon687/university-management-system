@@ -13,6 +13,7 @@ export const studentProfileValidationSchema = z.object({
 		}),
 
 		address: z.string().trim().min(1, "Address is required"),
+		departmentId:z.string().trim().min(5,'departmentId is Reqauired'),
 	}),
 });
 
