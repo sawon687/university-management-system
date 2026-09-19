@@ -497,7 +497,7 @@ class PaymentService {
 	}
 
 	async getALLPaymentStudent(id: string) {
-		const result = await prisma.payment.findMany({ where: { id } });
+		const result = await prisma.payment.findMany({ where: {userId: id } });
 		result;
 	}
 
