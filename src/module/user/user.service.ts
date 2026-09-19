@@ -4,6 +4,7 @@ import { prisma } from "../../lib/pirsma";
 
 class UserService {
 	async uploadeProfieImageDB(buffer: Buffer, userId: string) {
+		console.log('buffer ',buffer)
 		const currentUser = await prisma.users.findUnique({
 			where: { id: userId },
 			select: {
@@ -21,6 +22,7 @@ class UserService {
 
 						async (error, result) => {
 							if (error) {
+								console.log('error',error)
 								return reject(error);
 							}
 
@@ -34,6 +36,8 @@ class UserService {
 					.end(buffer);
 			},
 		);
+
+		console.log('cliudayr ',cloudinaryResult)
 		const updateUser = await prisma.users.update({
 			where: { id: userId },
 			data: {
@@ -44,6 +48,7 @@ class UserService {
 				password: true,
 			},
 		});
+		
 
 		if (currentUser?.imageUrl && currentUser.imagePublicId) {
 			await cloudinary.uploader.destroy(currentUser.imagePublicId);

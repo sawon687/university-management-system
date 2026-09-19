@@ -59,10 +59,10 @@ class PaymentController extends BaseController {
   });
 
   getsinglePaymetnUser = this.handle(async (req: Request, res: Response) => {
-    const id = req.params.id as string;
-
+    const id = req.params?.id as string;
+     console.log('id',id)
     const result = await paymentService.getSinglePaymentStudent(id);
-
+        console.log(result,'simgle')
     sendResponse(res, {
       message: "payment sigle found",
       status: statusCode.OK,
