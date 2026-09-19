@@ -82,12 +82,12 @@ class StudentService {
 			data: {
 				userId,
 				programId,
-				previousDegree,
-				previousInstitution,
+				previousDegree: previousDegree ?? null,
+				previousInstitution: previousInstitution ?? null,
 				status: AdmissionStatus.PENDING,
-				sscResult,
-				hscResult,
-				diplomaResult,
+				sscResult: sscResult ?? null,
+				hscResult: hscResult ?? null,
+				diplomaResult: diplomaResult ?? null,
 			},
 		});
 
@@ -229,7 +229,7 @@ class StudentService {
 
 			const courseIds = Enrolementcourses.map((course) => course.courseId);
 
-			//  First semester not allow 
+			//  First semester not allow
 			if (semester.semesterNumber !== 1) {
 				const prerequisites = await tx.prerequisiteCourse.findMany({
 					where: {

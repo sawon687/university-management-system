@@ -1,4 +1,4 @@
-import { ExamType, Role, UserStatus} from "../../../generated/prisma/enums";
+import { ExamType, Role, UserStatus } from "../../../generated/prisma/enums";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
 import { redisClient } from "../../lib/redis";
@@ -22,11 +22,9 @@ class Teachers {
 			throw new Error("confirm password doesnot match");
 		}
 
-		if (typeof redisToken !=="string") {
+		if (typeof redisToken !== "string") {
 			throw new Error("Token is invalid or expired");
 		}
-
-
 
 		const tokenPaylod: ITokenPyalod = JSON.parse(redisToken);
 

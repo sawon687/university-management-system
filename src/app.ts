@@ -1,4 +1,8 @@
-import express, { type Application, type Request, type Response } from "express";
+import express, {
+	type Application,
+	type Request,
+	type Response,
+} from "express";
 import cookie from "cookie-parser";
 import { authRouter } from "./module/auth/auth.routes";
 import { studentRouter } from "./module/students/students.routes";
@@ -11,16 +15,15 @@ import { globalErrorHandler } from "./midileware/golobalError";
 import path from "path";
 import helmet from "helmet";
 import cors from "cors";
-import config from './config';
+import config from "./config";
 
 const app: Application = express();
 
-
 app.use(
-  cors({
-    origin:config.appurl,
-    credentials: true,
-  })
+	cors({
+		origin: config.appurl,
+		credentials: true,
+	}),
 );
 app.use(helmet());
 app.use(cookie());
