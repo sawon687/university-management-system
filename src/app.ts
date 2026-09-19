@@ -1,7 +1,7 @@
 import express, {
-	type Application,
-	type Request,
-	type Response,
+  type Application,
+  type Request,
+  type Response,
 } from "express";
 import cookie from "cookie-parser";
 import { authRouter } from "./module/auth/auth.routes";
@@ -18,19 +18,20 @@ import cors from "cors";
 import config from "./config";
 
 const app: Application = express();
-
+app.set("trust proxy", 1);
 app.use(
-	cors({
-		origin: config.appurl,
-		credentials: true,
-	}),
+  cors({
+    origin: config.appurl,
+    credentials: true,
+  }),
 );
+
 app.use(helmet());
 app.use(cookie());
 app.use(
-	"/api/v1/payments/webhook",
-	express.raw({ type: "application/json" }),
-	PaymentController.confrimPayment,
+  "/api/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.confrimPayment,
 );
 
 app.use(express.json());
@@ -38,7 +39,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", async (req: Request, res: Response) => {
-	res.send("University managementsystem");
+  res.send("University managementsystem");
 });
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", studentRouter);
@@ -49,7 +50,7 @@ app.use("/api/v1/user/", UserRoutes);
 app.set("view engine", "ejs");
 app.set("views", path.join(process.cwd(), "src/templates"));
 app.get("/google-login", (req, res) => {
-	res.render("googlelogin");
+  res.render("googlelogin");
 });
 
 app.use(globalErrorHandler);

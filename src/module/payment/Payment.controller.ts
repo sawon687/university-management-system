@@ -7,68 +7,77 @@ import Stripe from "stripe";
 import config from "../../config";
 import { prisma } from "../../lib/pirsma";
 class PaymentController extends BaseController {
-	createPayment = this.handle(async (req: Request, res: Response) => {
-		const payload = req.body;
-		const userId = req.user?.id as string;
-		console.log("payload", payload);
-		const result = await paymentService.createPaymentsDB(payload, userId);
+  createPayment = this.handle(async (req: Request, res: Response) => {
+    const payload = req.body;
+    const userId = req.user?.id as string;
+    console.log("payload", payload);
+    const result = await paymentService.createPaymentsDB(payload, userId);
 
-		sendResponse(res, {
-			message: "program found",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: "program found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	confrimPayment = this.handle(async (req: Request, res: Response) => {
-		const signature = req.headers["stripe-signature"];
+  confrimPayment = this.handle(async (req: Request, res: Response) => {
+  
 
-		if (!signature) {
-			throw new Error("Stripe signature is missing");
-		}
+      const signature = req.headers["stripe-signature"];
 
-		const event = Stripe.webhooks.constructEvent(
-			req.body,
-			signature,
-			config.stripeWebhookSecret,
-		);
+      console.log(" signature exists:", !!signature);
+      console.log(" body Buffer:", Buffer.isBuffer(req.body));
+      console.log(" body type:", typeof req.body);
+      console.log(" body length:", req.body?.length);
+      console.log(" secret exists:", !!config.stripeWebhookSecret);
 
-		const result = await paymentService.confirmPaymentDB(event);
+      if (!signature) {
+        throw new Error("Stripe signature is missing");
+      }
 
-		sendResponse(res, {
-			message: "payment success fully",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+      const event = Stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        config.stripeWebhookSecret,
+      );
 
-	getAllPaymetnUser = this.handle(async (req: Request, res: Response) => {
-		const id = req.user?.id as string;
+      const result = await paymentService.confirmPaymentDB(event);
 
-		const result = await paymentService.getALLPaymentStudent(id);
+      sendResponse(res, {
+        message: "payment success fully",
+        status: statusCode.OK,
+        success: true,
+        data: result,
+      });
+    
+  });
 
-		sendResponse(res, {
-			message: "payment found",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getAllPaymetnUser = this.handle(async (req: Request, res: Response) => {
+    const id = req.user?.id as string;
 
-	getsinglePaymetnUser = this.handle(async (req: Request, res: Response) => {
-		const id = req.params.id as string;
+    const result = await paymentService.getALLPaymentStudent(id);
 
-		const result = await paymentService.getSinglePaymentStudent(id);
+    sendResponse(res, {
+      message: "payment found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: "payment sigle found",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getsinglePaymetnUser = this.handle(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+
+    const result = await paymentService.getSinglePaymentStudent(id);
+
+    sendResponse(res, {
+      message: "payment sigle found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new PaymentController();

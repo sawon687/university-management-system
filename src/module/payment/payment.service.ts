@@ -195,6 +195,7 @@ class PaymentService {
 		throw new Error("Admission and semesterEnrollment id not provided");
 	}
 	async confirmPaymentDB(event: Stripe.Event) {
+		console.log('event',event)
 		const session = event.data.object as Stripe.Checkout.Session;
 		const paymentExists = await prisma.payment.findUnique({
 			where: {
@@ -249,6 +250,8 @@ class PaymentService {
 		userId: string,
 		paymentId: string,
 	) {
+		 console.log('payment id',paymentId)
+		  console.log('session id',session)
 		const paymentExists = await prisma.payment.findUnique({
 			where: {
 				id: paymentId,
@@ -259,7 +262,7 @@ class PaymentService {
 			throw new Error("this payment not found");
 		}
 		await prisma.$transaction(async (tx) => {
-			await tx.payment.update({
+		     await tx.payment.update({
 				where: {
 					transactionId: session.id,
 				},
@@ -357,7 +360,7 @@ class PaymentService {
 				},
 				data: {
 					isEnrolled: true,
-					status: UserStatus.ACTIVE,
+					userStatus: UserStatus.ACTIVE,
 				},
 			});
 			console.log("enrolement", enrollment);
@@ -405,8 +408,12 @@ class PaymentService {
 				semester,
 				enrollment,
 				fee,
+				
 			};
 		});
+	
+
+		
 	}
 
 	private async confirmSemesterPayment(
