@@ -22,35 +22,27 @@ class PaymentController extends BaseController {
   });
 
   confrimPayment = this.handle(async (req: Request, res: Response) => {
-  
+    const signature = req.headers["stripe-signature"];
 
-      const signature = req.headers["stripe-signature"];
 
-      console.log(" signature exists:", !!signature);
-      console.log(" body Buffer:", Buffer.isBuffer(req.body));
-      console.log(" body type:", typeof req.body);
-      console.log(" body length:", req.body?.length);
-      console.log(" secret exists:", !!config.stripeWebhookSecret);
+    if (!signature) {
+      throw new Error("Stripe signature is missing");
+    }
 
-      if (!signature) {
-        throw new Error("Stripe signature is missing");
-      }
+    const event = Stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      config.stripeWebhookSecret,
+    );
 
-      const event = Stripe.webhooks.constructEvent(
-        req.body,
-        signature,
-        config.stripeWebhookSecret,
-      );
+    const result = await paymentService.confirmPaymentDB(event);
 
-      const result = await paymentService.confirmPaymentDB(event);
-
-      sendResponse(res, {
-        message: "payment success fully",
-        status: statusCode.OK,
-        success: true,
-        data: result,
-      });
-    
+    sendResponse(res, {
+      message: "payment success fully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
   });
 
   getAllPaymetnUser = this.handle(async (req: Request, res: Response) => {
