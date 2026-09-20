@@ -45,8 +45,11 @@ class Teachers {
 			data: {
 				password: passwordHash,
 				emailVerified: true,
-				status: UserStatus.ACTIVE,
+				userStatus: UserStatus.ACTIVE,
 			},
+			omit:{
+				password:true
+			}
 		});
 
 		await redisClient.del(readisTokenKey);
@@ -66,7 +69,7 @@ class Teachers {
 			specialization,
 			qualification,
 		} = paylaod;
-
+  
 		const result = await prisma.instructorProfile.update({
 			where: { userId },
 			data: {

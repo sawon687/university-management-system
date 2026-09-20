@@ -26,7 +26,7 @@ export const updateTeacherProfileValidationSchema = z.object({
 		address: z.string().trim().min(1, "Address cannot be empty").optional(),
 
 		experience: z.coerce
-			.number()
+			.string()
 			.min(0, "Experience cannot be negative")
 			.optional(),
 

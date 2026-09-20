@@ -8,66 +8,66 @@ import { adminValidation } from "./admin.validation";
 const router = Router();
 
 router.post(
-	"/department",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.createDepartmentValidationSchema),
-	adminController.CreateDepartment,
+  "/department",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.createDepartmentValidationSchema),
+  adminController.CreateDepartment,
 );
 router.post(
-	"/create-teacher",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.courseTeacherAssignValidationSchema),
-	adminController.teacherCreate,
+  "/create-teacher",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.instructorcreateValidationSchema),
+  adminController.teacherCreate,
 );
 router.post(
-	"/create-program",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.createProgramValidationSchema),
-	adminController.createProgram,
+  "/create-program",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.createProgramValidationSchema),
+  adminController.createProgram,
 );
 router.patch(
-	"/admissions/:id/status",
-          auth('ADMIN'),
-	validationReq.validate(
-		adminValidation.updateApplicationStatusValidationSchema,
-	),
-	adminController.updateApplicationStatus,
+  "/admissions/:id/status",
+  auth("ADMIN"),
+  validationReq.validate(
+    adminValidation.updateApplicationStatusValidationSchema,
+  ),
+  adminController.updateApplicationStatus,
 );
 router.get("/department", adminController.getAllDepartment);
 router.get("/users", adminController.getAllUser);
 router.patch(
-	"/users/:id/status",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.updateUserStatusValidationSchema),
-	adminController.updateStatus,
+  "/users/:id/status",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.updateUserStatusValidationSchema),
+  adminController.updateStatus,
 );
 router.post(
-	"/create-course",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.createCourseValidationSchema),
-	adminController.createCourse,
+  "/create-course",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.createCourseValidationSchema),
+  adminController.createCourse,
 );
 router.post(
-	"/create-prerequisite",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.createPrerequisiteValidationSchema),
-	adminController.createPrerequisite,
+  "/create-prerequisite",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.createPrerequisiteValidationSchema),
+  adminController.createPrerequisite,
 );
 router.post(
-	"/create-semester",
-	auth("ADMIN"),
-	validationReq.validate(adminValidation.createSemesterValidationSchema),
-	adminController.createSemester,
+  "/create-semester",
+  auth("ADMIN"),
+  validationReq.validate(adminValidation.createSemesterValidationSchema),
+  adminController.createSemester,
 );
 router.patch(
-	"/update-semester/:id",
-	auth("ADMIN"),
-	adminController.updateSemester,
+  "/update-semester/:id",
+  auth("ADMIN"),
+  adminController.updateSemester,
 );
 router.get(
-	"/studentadmissionsApplication",
-	auth("STUDENT"),
-	adminController.getAllStudenApplication,
+  "/studentadmissionsApplication",
+  auth("ADMIN"),
+  adminController.getAllStudenApplication,
 );
 router.post("/course/:id/assign", adminController.courseTeacherAssign);
 router.get("/all-course", auth("ADMIN"), adminController.getALLcourse);

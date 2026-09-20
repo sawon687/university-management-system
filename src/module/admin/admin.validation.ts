@@ -120,6 +120,18 @@ const courseTeacherAssignValidationSchema = z.object({
 		
 	
 });
+
+
+
+
+export const instructorcreateValidationSchema = z.object({
+	body: z.object({
+		name: z.string().min(1, "Name is required"),
+		email: z.email("Invalid email address"),
+		departmentId: z.uuid("Invalid department ID"),
+		gender: z.enum(["MALE", "FEMALE", "OTHER"]),
+	}),
+});
 export const adminValidation = {
 	createDepartmentValidationSchema,
 	createProgramValidationSchema,
@@ -129,4 +141,5 @@ export const adminValidation = {
 	createPrerequisiteValidationSchema,
 	createSemesterValidationSchema,
 	courseTeacherAssignValidationSchema,
+	instructorcreateValidationSchema,
 };
