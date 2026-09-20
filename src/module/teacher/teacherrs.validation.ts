@@ -58,7 +58,6 @@ export const updateTeacherProfileValidationSchema = z.object({
 
 export const createExamValidationSchema = z.object({
 	body: z.object({
-		courseId: z.string().trim().min(1, "Course ID is required"),
 
 		semesterId: z.string().trim().min(1, "Semester ID is required"),
 

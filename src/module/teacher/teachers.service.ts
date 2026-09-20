@@ -98,6 +98,21 @@ class Teachers {
 			totalMarks,
 		} = paylaod;
 
+		if(!courseId){
+			throw new Error('course id is emptay')
+		}
+      
+		 const exitsCourse=await prisma.course.findUnique({where:{id:courseId}})
+
+		 if(!exitsCourse){
+			 throw new Error('this Course does not extis')
+		 }
+
+		 const courseAssign= await prisma.courseAssignt.findUnique({where:{courseId_semesterId_instructorId:{courseId,semesterId,instructorId}}})
+	        if(!courseAssign)
+			{
+				throw new Error('this corse not assign')
+			}
 		const result = await prisma.exam.create({
 			data: {
 				courseId,
