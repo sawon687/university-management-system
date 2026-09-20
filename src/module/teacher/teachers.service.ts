@@ -130,7 +130,7 @@ class Teachers {
 												name: true,
 												email: true,
 												role: true,
-												status: true,
+												userStatus: true,
 												departmentId: true,
 												isEnrolled: true,
 											},

@@ -490,7 +490,7 @@ class AdminService {
 	}
 
 	async userDeletedDB(id: string, adminId: string) {
-		if (id) {
+		if (!id) {
 			throw new Error("user id is Emptay");
 		}
 		const oldUser = await prisma.users.findUnique({

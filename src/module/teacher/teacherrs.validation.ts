@@ -80,8 +80,6 @@ export const courseMarksValidationSchema = z.object({
 	body: z.object({
 		studentId: z.string().trim().min(1, "Student ID is required"),
 
-		courseId: z.string().trim().min(1, "Course ID is required"),
-
 		semesterId: z.string().trim().min(1, "Semester ID is required"),
 
 		attendanceMarks: z.coerce

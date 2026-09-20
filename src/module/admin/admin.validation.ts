@@ -33,8 +33,6 @@ const createProgramValidationSchema = z.object({
 
 		name: z.string().trim().min(1, "Program name is required"),
 
-		code: z.string().trim().min(1, "Program code is required"),
-
 		admissionFee: z.number().nonnegative(),
 
 		isActive: z.boolean(),
