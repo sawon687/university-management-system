@@ -330,10 +330,10 @@ class AdminService {
 
 		const existingAssignment = await prisma.courseAssignt.findUnique({
 			where: {
-				courseId_semesterId_instructorId: {
+				courseId_semesterId: {
 					courseId,
 					semesterId,
-					instructorId
+					
 				},
 			},
 		});

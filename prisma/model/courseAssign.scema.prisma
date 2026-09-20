@@ -15,6 +15,7 @@ model CourseAssignt {
   updatedAt DateTime @updatedAt
 
   @@unique([courseId,semesterId,instructorId])
+  @@unique([courseId,semesterId])
   @@index([courseId])
   @@index([instructorId])
   @@index([semesterId])
