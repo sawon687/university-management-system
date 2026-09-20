@@ -207,7 +207,7 @@ class AdminService {
 			const updatedUser = await tx.users.update({
 				where: { id },
 				data: {
-					status,
+					userStatus:status,
 				},
 			});
 
