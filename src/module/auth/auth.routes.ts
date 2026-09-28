@@ -11,7 +11,7 @@ router.post(
   validationReq.validate(authValidation.userRegisterValidationSchema),
   authController.createStudent,
 );
-router.post("/verified-email", authLimiter, authController.verifayAccount);
+router.post("/verified-email",  authController.verifayAccount);
 router.post("/login", authLimiter, authController.login);
 router.post("/google-login", authController.googleLogin);
 router.post("/refresh-token", authController.refreshToken);

@@ -5,7 +5,7 @@ export interface IUser {
 	email: string;
 	role: Role;
 	password: string;
-	departmentId: string;
+	phone: string;
 }
 
 export interface IOtpSendPaylod {

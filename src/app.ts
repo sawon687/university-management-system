@@ -21,7 +21,7 @@ const app: Application = express();
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: config.appurl,
+    origin: "http://localhost:3000",
     credentials: true,
   }),
 );

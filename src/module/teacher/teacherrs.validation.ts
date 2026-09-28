@@ -61,7 +61,7 @@ export const createExamValidationSchema = z.object({
 
 		semesterId: z.string().trim().min(1, "Semester ID is required"),
 
-		instructorId: z.string().trim().min(1, "Instructor ID is required"),
+		
 
 		examType: z.enum(["MIDTERM", "FINAL"]),
 

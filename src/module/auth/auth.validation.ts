@@ -19,9 +19,6 @@ const userRegisterValidationSchema = z.object({
 					message: "Email is not valid",
 				},
 			),
-		role: z.enum(["STUDENT"], {
-			message: "Role must be STUDENT",
-		}),
 
 		password: z
 			.string()
@@ -35,15 +32,15 @@ const userRegisterValidationSchema = z.object({
 					return;
 				}
 
-				if (value.length < 6) {
+				if (value.length < 8) {
 					ctx.addIssue({
 						code: "custom",
-						message: "Password must be at least 6 characters",
+						message: "Password must be at least 8 characters",
 					});
 				}
 			}),
 
-		departmentId: z.string().trim().uuid("Please select a valid department"),
+		
 	}),
 });
 

@@ -1,9 +1,9 @@
 model StudentProfile {
   id            String        @id @default(uuid())
-  phone         String
-  dateOfBirth   String
-  gender        String
-  address       String
+  phone         String?
+  dateOfBirth   String?
+  gender        String?
+  address       String?
   profilePhoto  String?
   studentId     String        @unique
   user          Users         @relation("studentProfile", fields: [studentId], references: [id], onDelete: Cascade)
