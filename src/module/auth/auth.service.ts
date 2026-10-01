@@ -1,7 +1,12 @@
 import { redisClient } from "../../lib/redis";
-import type { ILoging, IOtpSendPaylod, IUser } from "./auth.interface";
+import type {
+  ILoging,
+  IOtpSendPaylod,
+  IUpdatePasswordPayload,
+  IUser,
+} from "./auth.interface";
 import randomInt from "random-int";
-import bcrypt from "bcrypt";
+import bcrypt, { genSaltSync } from "bcrypt";
 
 import { prisma } from "../../lib/pirsma";
 import {
@@ -16,8 +21,9 @@ import { jwtUtils } from "../../utils/jwt";
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import { googleClient } from "../../lib/googleAuth";
 import config from "../../config";
-import { StatusCodes } from "http-status-codes";
-
+import { generateAndSaveOtp } from "../../utils/handleOtp";
+import { OtpPurpose } from "../../constants/otp";
+import { randomBytes } from "crypto";
 class AuthService {
   async createDB(payload: IUser) {
     console.log("paylaod", payload);
@@ -32,34 +38,47 @@ class AuthService {
       throw new Error("This instuctor not create normal users");
     }
 
-    const otpkey = `otpkey:${payload.email}`;
-    const userKey = `studentKey:${payload.email}`;
-
-    const expirtionSecondsPayload = 60 * 10;
-    const expirtionSeconds = 60 * 2;
-    console.log(userKey, "userkey");
     const passwordhash = await bcrypt.hash(
       payload.password,
       Number(config.bycriptHashRound),
     );
-    payload.password = passwordhash;
-    const otp = randomInt(100000, 1000000);
-    await redisClient.set(otpkey, otp.toString(), {
-      EX: expirtionSeconds,
-    });
-    await redisClient.set(userKey, JSON.stringify(payload), {
-      EX: expirtionSecondsPayload,
-    });
+
+    const { otp, expirationSeconds } = await generateAndSaveOtp(
+      payload.email,
+      OtpPurpose.EMAIL_VERIFICATION,
+    );
 
     const templatesPath = path.join(
       process.cwd(),
       `/src/templates/registration-user-otp.ejs`,
     );
+
+    const result = await prisma.users.create({
+      data: {
+        name: payload.name,
+        email: payload.email,
+        password: passwordhash,
+        role: Role.STUDENT,
+        userStatus: UserStatus.PENDING,
+        emailVerified: false,
+        isEnrolled: false,
+        studentProfile: {
+          create: {
+            phone: payload.phone || "",
+            departmentId: "",
+          },
+        },
+      },
+
+      omit: {
+        password: true,
+      },
+    });
     const templatesData = {
       name: payload.name,
       email: payload.email,
       otp: otp,
-      expirtionSeconds: expirtionSeconds / 60,
+      expirtionSeconds: expirationSeconds / 60,
     };
     const html = await ejs.renderFile(templatesPath, templatesData);
     console.log("html", templatesData);
@@ -70,68 +89,90 @@ class AuthService {
 
       html,
     });
-    return;
+    return result;
   }
 
-  async verifayAccountDB(paylaod: IOtpSendPaylod) {
-    const { email, otp } = paylaod;
-    const userExits = await prisma.users.findUnique({ where: { email } });
+  async verifayAccountDB(payload: IOtpSendPaylod) {
+    const email = payload.email.trim().toLowerCase();
+    const { otp, purpose } = payload;
 
-    const otpkey = `otpkey:${email.trim()}`;
-    const userKey = `studentKey:${email.trim()}`;
-    const redisOtp = await redisClient.get(otpkey);
     if (!otp) {
-      throw new Error("Invalid Otp");
+      throw new Error("Invalid OTP");
+    }
+
+    const userExists = await prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (!userExists) {
+      throw new Error("User not found");
+    }
+
+    if (purpose === OtpPurpose.EMAIL_VERIFICATION && userExists.emailVerified) {
+      throw new Error("User already verified");
+    }
+
+    if (purpose === OtpPurpose.PASSWORD_RESET && !userExists.emailVerified) {
+      throw new Error("This user is not verified");
+    }
+
+    const otpKey = `otpkey:${email}`;
+    const redisOtp = await redisClient.get(otpKey);
+
+    if (!redisOtp) {
+      throw new Error("OTP has expired or is invalid");
+    }
+    if (
+      purpose !== OtpPurpose.EMAIL_VERIFICATION &&
+      purpose !== OtpPurpose.PASSWORD_RESET
+    ) {
+      throw new Error("Invalid OTP purpose");
     }
     if (redisOtp !== otp.toString()) {
-      throw new Error("OTP Value Not Match!Pleace Valid OTP");
+      throw new Error("OTP value does not match");
     }
 
-    if (userExits?.emailVerified) {
-      throw new Error("User Already Verified");
+    await redisClient.del(otpKey);
+
+    if (OtpPurpose.PASSWORD_RESET === purpose) {
+      const token = randomBytes(32).toString("hex");
+
+      const tokenKey = `ResetPasswordToken:${email}`;
+      const expirationSeconds = 60 * 10;
+      await redisClient.set(tokenKey, token.toString(), {
+        EX: expirationSeconds,
+      });
+
+      return token;
     }
 
-    const RedisUserPayload = await redisClient.get(userKey);
-    if (typeof RedisUserPayload !== "string") {
-      throw new Error("User registration data not found or expired");
-    }
-    const userPayload: IUser = JSON.parse(RedisUserPayload);
-    const result = await prisma.users.create({
+    const result = await prisma.users.update({
+      where: { email },
       data: {
-        name: userPayload.name,
-        email: userPayload.email,
-        password: userPayload.password,
-        role: Role.STUDENT,
-        userStatus: UserStatus.ACTIVE,
         emailVerified: true,
-        isEnrolled: false,
-        studentProfile: {
-          create: {
-            phone: userPayload.phone || "",
-            departmentId: "",
-          },
-        },
+        userStatus: UserStatus.ACTIVE,
       },
-
       omit: {
         password: true,
       },
     });
 
-    await redisClient.del(otpkey);
-    await redisClient.del(userKey);
     const templatesPath = path.join(
       process.cwd(),
-      `/src/templates/wecome-message.ejs`,
+      "src/templates/wecome-message.ejs",
     );
-    const html = await ejs.renderFile(templatesPath, { name: result.name });
+
+    const html = await ejs.renderFile(templatesPath, {
+      name: result.name,
+    });
 
     await transporter.sendMail({
       from: config.smt_user,
-      to: result.email.trim(),
+      to: result.email,
       subject: "Welcome to UniSphere",
       html,
     });
+
     return result;
   }
 
@@ -141,6 +182,13 @@ class AuthService {
     const userExits = await prisma.users.findUnique({
       where: {
         email,
+      },
+      include: {
+        studentProfile: {
+          select: {
+            departmentId: true,
+          },
+        },
       },
     });
 
@@ -163,7 +211,7 @@ class AuthService {
       name: userExits.name,
       email: userExits.email,
       role: userExits.role,
-      departmentId: userExits.departmentId,
+      departmentId: userExits.studentProfile?.departmentId ?? null,
     };
 
     const accessToken = jwtUtils.createToken(
@@ -182,6 +230,84 @@ class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  async forgotPasswordDB(email: string) {
+    if (!email) {
+      throw new Error("Email not provided, please provide an email");
+    }
+    const userExits = await prisma.users.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!userExits) {
+      throw new Error("This Account Not Found");
+    }
+
+    if (userExits.emailVerified === false) {
+      throw new Error("This Account Not Verifyed Pleace try Again");
+    }
+
+    const { otp, expirationSeconds } = await generateAndSaveOtp(
+      email,
+      OtpPurpose.PASSWORD_RESET,
+    );
+
+    const templatesPath = path.join(
+      process.cwd(),
+      `/src/templates/forgot-password.ejs`,
+    );
+    const templatesData = {
+      name: userExits.name,
+      email: userExits.email,
+      otp: otp,
+      expirtionSeconds: expirationSeconds / 60,
+    };
+    const html = await ejs.renderFile(templatesPath, templatesData);
+    console.log("html", templatesData);
+    await transporter.sendMail({
+      from: config.smt_user,
+      to: userExits.email,
+      subject: "Forgot Password",
+
+      html,
+    });
+
+    return;
+  }
+
+  async updatePasswordDB(payload: IUpdatePasswordPayload) {
+    const { email, token, passsword } = payload;
+    const userExits = await prisma.users.findUnique({ where: { email } });
+
+    if (!userExits) {
+      throw new Error("This Account Not Found");
+    }
+
+    const passwordhash = await bcrypt.hash(
+      passsword,
+      Number(config.bycriptHashRound),
+    );
+
+    const tokenKey = `ResetPasswordToken:${email}`;
+    const redisToken = await redisClient.get(tokenKey);
+
+    if (!redisToken || token !== redisToken) {
+      throw new Error("Unauthorized password reset request");
+    }
+    await redisClient.del(tokenKey);
+
+    const result = await prisma.users.update({
+      where: { email },
+      data: {
+        password: passwordhash,
+      },
+    });
+
+    return result;
+  }
+
   async googleLoginDB(payload: { idToken: string; role?: string }) {
     console.log("paylaod", payload);
     const { idToken, role } = payload;
@@ -205,6 +331,13 @@ class AuthService {
       where: {
         email: googleUser.email,
       },
+      include: {
+        studentProfile: {
+          select: {
+            departmentId: true,
+          },
+        },
+      },
     });
 
     if (!user || user.isDeleted) {
@@ -222,6 +355,13 @@ class AuthService {
           authProvider: AuthProvider.GOOGLE,
           googleId: googleUser.sub,
         },
+        include: {
+          studentProfile: {
+            select: {
+              departmentId: true,
+            },
+          },
+        },
       });
     }
 
@@ -230,7 +370,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      department: user.departmentId,
+      department: user.studentProfile?.departmentId,
     };
 
     const accessToken = jwtUtils.createToken(jwtPayload, config.accessSecret, {
@@ -264,6 +404,13 @@ class AuthService {
 
     const user = await prisma.users.findUnique({
       where: { id: data.id },
+      include: {
+        studentProfile: {
+          select: {
+            departmentId: true,
+          },
+        },
+      },
     });
 
     console.log("user", user);
@@ -276,7 +423,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      departmentId: user.departmentId,
+      departmentId: user.studentProfile?.departmentId,
     };
 
     const accessToken = jwtUtils.createToken(

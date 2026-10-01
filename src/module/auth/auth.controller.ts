@@ -6,116 +6,166 @@ import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
 import config from "../../config";
 class AuthController extends BaseController {
-	createStudent = this.handle(async (req: Request, res: Response) => {
-		const payload = req.body;
-		console.log("paylaod", payload);
-		await authService.createDB(payload);
+  createStudent = this.handle(async (req: Request, res: Response) => {
+    const payload = req.body;
+    console.log("paylaod", payload);
+    await authService.createDB(payload);
 
-		sendResponse(res, {
-			message: "Verifay OTP Send Pleace Check your Email",
-			status: statusCode.OK,
-			success: true,
-		});
-	});
-	verifayAccount = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const result = await authService.verifayAccountDB(paylaod);
-		sendResponse(res, {
-			message: "User Register is successFully",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: "Verifay OTP Send Pleace Check your Email",
+      status: statusCode.OK,
+      success: true,
+    });
+  });
+  verifayAccount = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await authService.verifayAccountDB(paylaod);
 
-	login = this.handle(async (req: Request, res: Response) => {
-		const payload = req.body;
-		const result = await authService.loginDB(payload);
+    // if (
+    //   "accessToken" in result &&
+    //   "refreshToken" in result &&
+    //   result.accessToken &&
+    //   result.refreshToken
+    // ) {
+    //   res.cookie("accessToken", result.accessToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite: "none",
+    //     maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+    //   });
+    //   res.cookie("refreshToken", result.refreshToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite: "none",
+    //     maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
+    //   });
+    // }
+    sendResponse(res, {
+      message: "User Register is successFully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		if (!result) {
-			throw new Error("User creation failed");
-		}
-		const { accessToken, refreshToken } = result;
-		res.cookie("accessToken", accessToken, {
-			httpOnly: true,
-			secure: false,
-			sameSite: "none",
-			maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
-		});
-		res.cookie("refreshToken", refreshToken, {
-			httpOnly: true,
-			secure: false,
-			sameSite: "none",
-			maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
-		});
-		sendResponse(res, {
-			success: true,
-			message: "user login  successfully",
-			status: statusCode.CREATED,
-			data: { accessToken, refreshToken },
-		});
-	});
+  login = this.handle(async (req: Request, res: Response) => {
+    const payload = req.body;
+    const result = await authService.loginDB(payload);
 
-	me = this.handle(async (req: Request, res: Response) => {});
+    if (!result) {
+      throw new Error("User creation failed");
+    }
+    const { accessToken, refreshToken } = result;
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
+    });
+    sendResponse(res, {
+      success: true,
+      message: "user login  successfully",
+      status: statusCode.CREATED,
+      data: { accessToken, refreshToken },
+    });
+  });
 
-	googleLogin = this.handle(async (req: Request, res: Response) => {
-		console.log("googleLogin", req.body);
-		const result = await authService.googleLoginDB(req.body);
+  me = this.handle(async (req: Request, res: Response) => {
 
-		const { accessToken, refreshToken } = result;
+  });
 
-		res.cookie("accessToken", accessToken, {
-			secure: process.env.NODE_ENV === "production",
-			httpOnly: true,
-			sameSite: "none",
-		});
+  googleLogin = this.handle(async (req: Request, res: Response) => {
+    console.log("googleLogin", req.body);
+    const result = await authService.googleLoginDB(req.body);
 
-		res.cookie("refreshToken", refreshToken, {
-			secure: process.env.NODE_ENV === "production",
-			httpOnly: true,
-			sameSite: "none",
-		});
+    const { accessToken, refreshToken } = result;
 
-		sendResponse(res, {
-			success: true,
-			message: "Google login successful!",
-			status: statusCode.OK,
-			data: { accessToken, refreshToken },
-		});
-	});
+    res.cookie("accessToken", accessToken, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "none",
+    });
 
-	refreshToken = this.handle(async (req: Request, res: Response) => {
-		if (!req.cookies.refreshToken) {
-			throw new Error("Refresh token is missing");
-		}
-		console.log("refrsh token", req.cookies.refreshToken);
+    res.cookie("refreshToken", refreshToken, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "none",
+    });
 
-		const result = await authService.refreshToken(req.cookies.refreshToken);
-		const { accessToken, refreshToken: newRefreshToken } = result;
+    sendResponse(res, {
+      success: true,
+      message: "Google login successful!",
+      status: statusCode.OK,
+      data: { accessToken, refreshToken },
+    });
+  });
 
-		res.cookie("accessToken", accessToken, {
-			httpOnly: true,
-			secure: config.node_env === "development" ? false : true,
-			sameSite: config.node_env === "development" ? "lax" : "none",
-			maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
-		});
-		res.cookie("refreshToken", newRefreshToken, {
-			httpOnly: true,
-			secure: config.node_env === "development" ? false : true,
-			sameSite: config.node_env === "development" ? "lax" : "none",
-			maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-		});
+  refreshToken = this.handle(async (req: Request, res: Response) => {
+    if (!req.cookies.refreshToken) {
+      throw new Error("Refresh token is missing");
+    }
+    console.log("refrsh token", req.cookies.refreshToken);
 
-		sendResponse(res, {
-			status: statusCode.OK,
-			success: true,
-			message: "New tokens generated successfully",
-			data: {
-				accessToken,
-				refreshToken: newRefreshToken,
-			},
-		});
-	});
+    const result = await authService.refreshToken(req.cookies.refreshToken);
+    const { accessToken, refreshToken: newRefreshToken } = result;
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: config.node_env === "development" ? false : true,
+      sameSite: config.node_env === "development" ? "lax" : "none",
+      maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+    });
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: config.node_env === "development" ? false : true,
+      sameSite: config.node_env === "development" ? "lax" : "none",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+
+    sendResponse(res, {
+      status: statusCode.OK,
+      success: true,
+      message: "New tokens generated successfully",
+      data: {
+        accessToken,
+        refreshToken: newRefreshToken,
+      },
+    });
+  });
+
+  forgotPassword = this.handle(async (req: Request, res: Response) => {
+    const email = req.body?.email;
+    console.log("email", email);
+    const result = await authService.forgotPasswordDB(email);
+
+    sendResponse(res, {
+      status: statusCode.OK,
+      success: true,
+      message:
+        "Forgot Password We've sent a verification code to your email. Please check your inbox.",
+      data: result,
+    });
+  });
+
+    updatePassword = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body
+
+    const result = await authService.updatePasswordDB(paylaod);
+
+    sendResponse(res, {
+      status: statusCode.OK,
+      success: true,
+      message:
+        "Update Password SuccssFully.",
+      data: result,
+    });
+  });
 }
 
 export default new AuthController();

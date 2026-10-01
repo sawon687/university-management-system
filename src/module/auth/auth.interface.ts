@@ -11,9 +11,17 @@ export interface IUser {
 export interface IOtpSendPaylod {
 	otp: string;
 	email: string;
+	purpose?:string
 }
 
 export interface ILoging {
 	email: string;
 	password: string;
+}
+
+export interface IUpdatePasswordPayload{
+     token:string,
+	 email:string,
+	 passsword:string,
+
 }

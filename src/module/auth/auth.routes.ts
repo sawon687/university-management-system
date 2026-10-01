@@ -15,5 +15,8 @@ router.post("/verified-email",  authController.verifayAccount);
 router.post("/login", authLimiter, authController.login);
 router.post("/google-login", authController.googleLogin);
 router.post("/refresh-token", authController.refreshToken);
+router.post("/forgot-password", authController.forgotPassword);
+router.post('/update-password',validationReq.validate(authValidation.resetPasswordSchema),authController.updatePassword)
+
 
 export const authRouter = router;
