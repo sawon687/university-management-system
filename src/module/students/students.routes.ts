@@ -12,7 +12,6 @@ router.patch(
   validationReq.validate(studentValidation.studentProfileValidationSchema),
   studentController.updateme,
 );
-router.get("/me", auth("STUDENT"), studentController.getStudentProfile);
 router.post(
   "/application-admission",
   auth("STUDENT"),

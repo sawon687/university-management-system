@@ -22,6 +22,6 @@ export interface ILoging {
 export interface IUpdatePasswordPayload{
      token:string,
 	 email:string,
-	 passsword:string,
+	 password:string,
 
 }

@@ -48,7 +48,7 @@ class UserService {
     const updateUser = await prisma.users.update({
       where: { id: userId },
       data: {
-        imageUrl: cloudinaryResult.secure_url,
+        userPhoto: cloudinaryResult.secure_url,
         imagePublicId: cloudinaryResult.public_id,
       },
       omit: {

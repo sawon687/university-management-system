@@ -48,18 +48,7 @@ class StudentService {
 		return result;
 	}
 
-	async getStudentProfile(id: string) {
-		const result = await prisma.users.findUnique({
-			where: { id },
-			include: {
-				studentProfile: true,
-			},
-			omit: {
-				password: true,
-			},
-		});
-		return result;
-	}
+
 
 	async admissionApplicationDB(payload: IAdmissionApplication) {
 		const {

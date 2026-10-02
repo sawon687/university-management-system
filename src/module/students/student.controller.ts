@@ -4,7 +4,7 @@ import { BaseController } from "../../utils/catchAsync";
 import statusCode from "http-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
 import studentService from "./student.service";
-import { prisma } from "../../lib/pirsma";
+
 
 class StudentController extends BaseController {
 	updateme = this.handle(async (req: Request, res: Response) => {
@@ -23,17 +23,6 @@ class StudentController extends BaseController {
 		});
 	});
 
-	getStudentProfile = this.handle(async (req: Request, res: Response) => {
-		const id = req.user?.id as string;
-
-		const result = await studentService.getStudentProfile(id);
-		sendResponse(res, {
-			message: "profile found",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
 
 	admissionApplication = this.handle(async (req: Request, res: Response) => {
 		const body = req.body;

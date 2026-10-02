@@ -5,6 +5,8 @@ import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
 import config from "../../config";
+import { IUser } from './auth.interface';
+import { Role } from '../../../generated/prisma/enums';
 class AuthController extends BaseController {
   createStudent = this.handle(async (req: Request, res: Response) => {
     const payload = req.body;
@@ -19,6 +21,7 @@ class AuthController extends BaseController {
   });
   verifayAccount = this.handle(async (req: Request, res: Response) => {
     const paylaod = req.body;
+    console.log('payload verayfay reset',paylaod)
     const result = await authService.verifayAccountDB(paylaod);
 
     // if (
@@ -58,14 +61,14 @@ class AuthController extends BaseController {
     const { accessToken, refreshToken } = result;
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "none",
+      secure: config.node_env=='development'?false:true,
+      sameSite:config.node_env=="development"?"lax":"none",
       maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "none",
+     secure: config.node_env=='development'?false:true,
+      sameSite:config.node_env=="development"?"lax":"none",
       maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
     });
     sendResponse(res, {
@@ -166,6 +169,32 @@ class AuthController extends BaseController {
       data: result,
     });
   });
+
+
+    getMe = this.handle(async (req: Request, res: Response) => {
+      const {id,role }= req.user!
+  
+      const result = await authService.getMeDB(id, role as Role);
+      sendResponse(res, {
+        message: "profile found",
+        status: statusCode.OK,
+        success: true,
+        data: result,
+      });
+    });
+
+     logout = this.handle(async (req: Request, res: Response) => {
+ 
+         res.clearCookie('accessToken')
+         res.clearCookie('refreshToken')
+    
+      sendResponse(res, {
+        message: "User Logged Out Succesfully",
+        status: statusCode.OK,
+        success: true,
+   
+      });
+    });
 }
 
 export default new AuthController();

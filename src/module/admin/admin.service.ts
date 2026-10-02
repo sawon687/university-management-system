@@ -66,9 +66,18 @@ class AdminService {
 			whereQuery.userStatus = status.toLocaleUpperCase() as UserStatus;
 		}
 
-		if (departmentNormalization) {
-			whereQuery.department = {
-				code: departmentNormalization.toLocaleUpperCase(),
+		const userProfile =
+			role === Role.STUDENT
+				? 'studentProfile'
+				: role === Role.INSTRUCTOR
+					? 'instructorProfile'
+					: null;
+
+		if (departmentNormalization && userProfile) {
+			whereQuery[userProfile] = {
+				department: {
+					code: departmentNormalization.toLocaleUpperCase(),
+				},
 			};
 		}
 		console.log("WHERE:", JSON.stringify(whereQuery, null, 2));

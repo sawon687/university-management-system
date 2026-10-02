@@ -116,7 +116,7 @@ class AuthService {
       throw new Error("This user is not verified");
     }
 
-    const otpKey = `otpkey:${email}`;
+    const otpKey = `otpkey:${purpose}:${email}`;
     const redisOtp = await redisClient.get(otpKey);
 
     if (!redisOtp) {
@@ -143,7 +143,7 @@ class AuthService {
         EX: expirationSeconds,
       });
 
-      return token;
+      return {token};
     }
 
     const result = await prisma.users.update({
@@ -278,7 +278,8 @@ class AuthService {
   }
 
   async updatePasswordDB(payload: IUpdatePasswordPayload) {
-    const { email, token, passsword } = payload;
+    const { email, token, password } = payload;
+    console.log('update password',payload)
     const userExits = await prisma.users.findUnique({ where: { email } });
 
     if (!userExits) {
@@ -286,7 +287,7 @@ class AuthService {
     }
 
     const passwordhash = await bcrypt.hash(
-      passsword,
+      password,
       Number(config.bycriptHashRound),
     );
 
@@ -443,6 +444,20 @@ class AuthService {
       refreshToken,
     };
   }
+
+    async getMeDB(id: string,role:Role) {
+      const result = await prisma.users.findUnique({
+        where: { id },
+        include: {
+          studentProfile:role===Role.STUDENT,
+          instructorProfile:role===Role.INSTRUCTOR
+        },
+        omit: {
+          password: true,
+        },
+      });
+      return result;
+    }
 }
 
 export default new AuthService();
