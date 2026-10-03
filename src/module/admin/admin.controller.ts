@@ -22,7 +22,12 @@ class Admin extends BaseController {
 	});
 
 	getAllDepartment = this.handle(async (req: Request, res: Response) => {
-		const result = await adminService.getALLDepartmentDB();
+		const queray = req.query;
+		const search=queray.search
+		console.log('search',queray.search)
+		const result = await adminService.getALLDepartmentDB(
+			search as string
+		);
 		sendResponse(res, {
 			message: "Department",
 			status: statusCode.OK,

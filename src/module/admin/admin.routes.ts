@@ -9,7 +9,7 @@ const router = Router();
 
 router.post(
   "/department",
-  auth("ADMIN"),
+
   validationReq.validate(adminValidation.createDepartmentValidationSchema),
   adminController.CreateDepartment,
 );
@@ -25,6 +25,7 @@ router.post(
   validationReq.validate(adminValidation.createProgramValidationSchema),
   adminController.createProgram,
 );
+
 router.patch(
   "/admissions/:id/status",
   auth("ADMIN"),
