@@ -7,7 +7,7 @@ model Result {
   gradePoint Float
 
   exam    Exam  @relation(fields: [examId], references: [id])
-  student Users @relation("StudentResults", fields: [studentId], references: [id])
+  student Users @relation("StudentResults", fields: [studentId], references: [id],onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

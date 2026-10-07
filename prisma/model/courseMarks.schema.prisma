@@ -10,7 +10,7 @@ model CourseMarks {
   midMarks        Float @default(0)
   finalExamMarks  Float @default(0)
 
-  student  Users    @relation("studentCourseResult", fields: [studentId], references: [id])
+  student  Users    @relation("studentCourseResult", fields: [studentId], references: [id],onDelete: Cascade)
   course   Course   @relation(fields: [courseId], references: [id])
   semester Semester @relation(fields: [semesterId], references: [id])
 

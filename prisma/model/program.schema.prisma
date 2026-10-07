@@ -7,7 +7,7 @@ model Program {
   totalCredits Float
   semester     Int
   semesterType SemesterType
-  description  String
+  description  String?
   admissionFee Float
   tuitionFee   Float
   isActive     Boolean                @default(true)

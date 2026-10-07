@@ -2,8 +2,8 @@ model Semester {
   id               String       @id @default(uuid())
   name             SemesterCode
   year             Int // 2026
-  startDate        DateTime
-  endDate          DateTime
+  startDate        String
+  endDate          String
   registrationOpen Boolean      @default(false)
 
   createdAt DateTime @default(now())

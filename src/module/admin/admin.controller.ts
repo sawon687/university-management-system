@@ -8,241 +8,252 @@ import type { ICourseQuery, Query } from "./admin.interface";
 import type { Role } from "../../../generated/prisma/enums";
 
 class Admin extends BaseController {
-	CreateDepartment = this.handle(async (req: Request, res: Response) => {
-		const payload = req.body;
+  CreateDepartment = this.handle(async (req: Request, res: Response) => {
+    const payload = req.body;
 
-		const result = await adminService.createDepartmentDB(payload);
+    const result = await adminService.createDepartmentDB(payload);
 
-		sendResponse(res, {
-			message: "Department Created SuccessFully",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: "Department Created SuccessFully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	getAllDepartment = this.handle(async (req: Request, res: Response) => {
-		const queray = req.query;
-		const search=queray.search
-		console.log('search',queray.search)
-		const result = await adminService.getALLDepartmentDB(
-			search as string
-		);
-		sendResponse(res, {
-			message: "Department",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getAllDepartment = this.handle(async (req: Request, res: Response) => {
+    const queray = req.query;
+    const search = queray.search;
+    const id = queray.id;
+    console.log("search", queray.search);
+    const result = await adminService.getALLDepartmentDB(search as string);
+    sendResponse(res, {
+      message: "Department",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	teacherCreate = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const result = await adminService.teachersCreateDB(paylaod);
-		sendResponse(res, {
-			message: "Teacher is Created SuccessFully",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  teacherCreate = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await adminService.teachersCreateDB(paylaod);
+    sendResponse(res, {
+      message: "Teacher is Created SuccessFully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	createProgram = this.handle(async (req: Request, res: Response) => {
-		const payload = req.body;
+  createProgram = this.handle(async (req: Request, res: Response) => {
+    const payload = req.body;
 
-		const result = await adminService.createProgramDB(payload);
-		sendResponse(res, {
-			message: "Program is Created SuccessFully",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
-	updateApplicationStatus = this.handle(async (req: Request, res: Response) => {
-		const status = req.body?.status;
-		const id = req.params?.id as string;
+    const result = await adminService.createProgramDB(payload);
+    sendResponse(res, {
+      message: "Program is Created SuccessFully",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+  getAllPrograms = this.handle(async (req: Request, res: Response) => {
+    const queray = req.query;
+    const result = await adminService.getAllProgram(queray);
 
-		const result = await adminService.updateStatusApplicationDB(id, status);
+    sendResponse(res, {
+      message: "program found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+  updateApplicationStatus = this.handle(async (req: Request, res: Response) => {
+    const status = req.body?.status;
+    const id = req.params?.id as string;
 
-		sendResponse(res, {
-			message: `Application ${status} is  SuccessFully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    const result = await adminService.updateStatusApplicationDB(id, status);
 
-	getAllUser = this.handle(async (req: Request, res: Response) => {
-		const query = req.query as Query | any;
-		console.log("queray", query);
+    sendResponse(res, {
+      message: `Application ${status} is  SuccessFully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		const result = await adminService.getAllUserDB(query);
-		sendResponse(res, {
-			message: "user Found",
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
-	updateStatus = this.handle(async (req: Request, res: Response) => {
-		const id = req.params?.id as string;
-		const status = req.body?.status;
-		const adminId = req.user?.id as string;
-		const result = await adminService.updateStatusUserDB(id, status, adminId);
-		sendResponse(res, {
-			message: `user ${status} is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getAllUser = this.handle(async (req: Request, res: Response) => {
+    const query = req.query as Query | any;
+  
 
-	createCourse = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const result = await adminService.createCourseDB(paylaod);
-		sendResponse(res, {
-			message: `create Course is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
-	createPrerequisite = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const result = await adminService.createPrerequisiteDB(paylaod);
-		sendResponse(res, {
-			message: ` Course  create is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    const result = await adminService.getAllUserDB(query);
+    sendResponse(res, {
+      message: "user Found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+  updateStatus = this.handle(async (req: Request, res: Response) => {
+    const id = req.params?.id as string;
+    const status = req.body?.status;
+    const adminId = req.user?.id as string;
+    const result = await adminService.updateStatusUserDB(id, status, adminId);
+    sendResponse(res, {
+      message: `user ${status} is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	createSemester = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const result = await adminService.createSemesterDB(paylaod);
+  createCourse = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await adminService.createCourseDB(paylaod);
+    sendResponse(res, {
+      message: `create Course is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+  createPrerequisite = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await adminService.createPrerequisiteDB(paylaod);
+    sendResponse(res, {
+      message: ` Course  create is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `Semester create is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  createSemester = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const result = await adminService.createSemesterDB(paylaod);
 
-	updateSemester = this.handle(async (req: Request, res: Response) => {
-		const paylaod = req.body;
-		const id = req.params?.id as string;
-		const result = await adminService.updateSemesterDB(paylaod, id);
+    sendResponse(res, {
+      message: `Semester create is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `Update create is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  updateSemester = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
+    const id = req.params?.id as string;
 
-	getAllStudenApplication = this.handle(async (req: Request, res: Response) => {
-		const result = await adminService.getllStudentApplicationDB();
+    const result = await adminService.updateSemesterDB(paylaod, id as string);
 
-		sendResponse(res, {
-			message: `Update create is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: `Update create is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	courseTeacherAssign = this.handle(async (req: Request, res: Response) => {
-		const body = req.body;
-		const id = req.params?.id;
-		const adminId = req.user?.id as string;
-		const paylaod = {
-			...body,
-			courseId: id,
-		};
-		const result = await adminService.courseTeacherAssign(paylaod, adminId);
+  getAllStudenApplication = this.handle(async (req: Request, res: Response) => {
+    const result = await adminService.getllStudentApplicationDB();
 
-		sendResponse(res, {
-			message: `Course Assign teacher is successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: `Update create is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-	getALLcourse = this.handle(async (req: Request, res: Response) => {
-		const queray = req.query as unknown as ICourseQuery;
+  courseTeacherAssign = this.handle(async (req: Request, res: Response) => {
+    const body = req.body;
+    const id = req.params?.id;
+    const adminId = req.user?.id as string;
+    const paylaod = {
+      ...body,
+      courseId: id,
+    };
+    const result = await adminService.courseTeacherAssign(paylaod, adminId);
 
-		const result = await adminService.getAllCourse(queray);
+    sendResponse(res, {
+      message: `Course Assign teacher is successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `all corse found`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getCourseAssignmentData = this.handle(async (req: Request, res: Response) => {
+    const queray = req.query as ICourseQuery;
+    console.log("queray controller", queray);
+    const result = await adminService.getCourseAssignmentDataDB(queray);
 
-	getALLSemester = this.handle(async (req: Request, res: Response) => {
-		const result = await adminService.getALLSemester();
+    sendResponse(res, {
+      message: `all corse found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `all semester found`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  getALLSemester = this.handle(async (req: Request, res: Response) => {
+    const result = await adminService.getALLSemester();
 
-	dashboardStats = this.handle(async (req: Request, res: Response) => {
-		const result = await adminService.dashboardStatsDB();
+    sendResponse(res, {
+      message: `all semester found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `dashbaord states found`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  dashboardStats = this.handle(async (req: Request, res: Response) => {
+    const result = await adminService.dashboardStatsDB();
 
-	userUpdateRole = this.handle(async (req: Request, res: Response) => {
-		const id = req.params.id as string;
-		const role = req.body.role;
-		const adminid = req.user?.id as string;
-		const result = await adminService.updateUserAdminRole(id, role, adminid);
+    sendResponse(res, {
+      message: `dashbaord states found`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `User updte ${role} succesfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+  userUpdateRole = this.handle(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const role = req.body.role;
+    const adminid = req.user?.id as string;
+    const result = await adminService.updateUserAdminRole(id, role, adminid);
 
-	userDelete = this.handle(async (req: Request, res: Response) => {
-		const id = req.params.id as string;
-		const adminId = req.user?.id as Role;
-		const result = await adminService.userDeletedDB(id, adminId);
+    sendResponse(res, {
+      message: `User updte ${role} succesfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 
-		sendResponse(res, {
-			message: `user deleted successfully`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
-	auditlog = this.handle(async (req: Request, res: Response) => {
-		const result = await adminService.auditLogDB();
+  userDelete = this.handle(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const adminId = req.user?.id as Role;
+    const result = await adminService.userDeletedDB(id, adminId);
 
-		sendResponse(res, {
-			message: `get auditlog`,
-			status: statusCode.OK,
-			success: true,
-			data: result,
-		});
-	});
+    sendResponse(res, {
+      message: `user deleted successfully`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
+  auditlog = this.handle(async (req: Request, res: Response) => {
+    const result = await adminService.auditLogDB();
+
+    sendResponse(res, {
+      message: `get auditlog`,
+      status: statusCode.OK,
+      success: true,
+      data: result,
+    });
+  });
 }
 
 export default new Admin();

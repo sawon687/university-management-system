@@ -47,9 +47,10 @@ export interface ICourse {
 }
 
 export interface Query {
-	role: Role;
-	status: UserStatus;
-	department: string;
+	role?: Role;
+	status?: UserStatus;
+	department?: string;
+	search?:string
 }
 
 export interface ICreatePrerequisite {
@@ -77,7 +78,14 @@ export interface ICourseAssingTeacher {
 	semesterId: string;
 }
 
+// export interface ICourseQuery {
+// 	departmentId: string;
+// 	search: string;
+// }
+
 export interface ICourseQuery {
-	department: string;
-	search: string;
+    departmentId:string
+  page:string,
+  limit:string
+  [key: string]: string;
 }

@@ -2,7 +2,7 @@ model InstructorProfile {
   id           String @id @default(uuid())
   userId       String @unique
   teacherCode  String @unique
-  departmentId String @unique
+  departmentId String
 
   phone          String?
   gender         String?
@@ -20,4 +20,6 @@ model InstructorProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([departmentId])
+  @@index([userId])
 }

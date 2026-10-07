@@ -9,23 +9,23 @@ const router = Router();
 
 router.post(
   "/department",
-
+   auth('ADMIN'),
   validationReq.validate(adminValidation.createDepartmentValidationSchema),
   adminController.CreateDepartment,
 );
 router.post(
   "/create-teacher",
-  auth("ADMIN"),
+  // auth("ADMIN"),
   validationReq.validate(adminValidation.instructorcreateValidationSchema),
   adminController.teacherCreate,
 );
 router.post(
   "/create-program",
-  auth("ADMIN"),
+  // auth("ADMIN"),
   validationReq.validate(adminValidation.createProgramValidationSchema),
   adminController.createProgram,
 );
-
+router.get('/all-program',adminController.getAllPrograms)
 router.patch(
   "/admissions/:id/status",
   auth("ADMIN"),
@@ -44,7 +44,7 @@ router.patch(
 );
 router.post(
   "/create-course",
-  auth("ADMIN"),
+  // auth("ADMIN"),
   validationReq.validate(adminValidation.createCourseValidationSchema),
   adminController.createCourse,
 );
@@ -56,13 +56,13 @@ router.post(
 );
 router.post(
   "/create-semester",
-  auth("ADMIN"),
+  // auth("ADMIN"),
   validationReq.validate(adminValidation.createSemesterValidationSchema),
   adminController.createSemester,
 );
 router.patch(
   "/update-semester/:id",
-  auth("ADMIN"),
+  // auth("ADMIN"),
   adminController.updateSemester,
 );
 router.get(
@@ -71,11 +71,14 @@ router.get(
   adminController.getAllStudenApplication,
 );
 router.post("/course/:id/assign", adminController.courseTeacherAssign);
-router.get("/all-course", auth("ADMIN"), adminController.getALLcourse);
+
 router.get("/all-semester", adminController.getALLSemester);
 router.get("/dashboard-stats", auth("ADMIN"), adminController.dashboardStats);
 router.patch("/users/:id/role", auth("ADMIN"), adminController.userUpdateRole);
 router.delete("/users/:id", auth("ADMIN"), adminController.userDelete);
 router.get("/audit-logs", auth("ADMIN"), adminController.auditlog);
+router.get('/course-assignment',
+  // auth('ADMIN'),
+  adminController.getCourseAssignmentData)
 
 export const adminRouter = router;

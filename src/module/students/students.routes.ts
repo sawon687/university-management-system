@@ -19,6 +19,7 @@ router.post(
   studentController.admissionApplication,
 );
 router.get("/all-Program", studentController.getAllProgramg);
+router.get('/all-Program/:id',studentController.getDetailsProgram)
 router.get("/my-application", auth("STUDENT"), studentController.myApplication);
 router.post(
   "/student-enrolement",

@@ -25,7 +25,7 @@ const createProgramValidationSchema = z.object({
 
 		degreeType: z.string().min(1, "Degree type is required"),
 
-		description: z.string().trim().min(1, "Description is required"),
+		description: z.string().trim().optional(),
 
 		totalCredits: z.number().positive(),
 
@@ -71,7 +71,7 @@ const createCourseValidationSchema = z.object({
 
 		departmentId: z.string().uuid("Invalid department ID"),
 
-		description: z.string().trim().min(1, "Description is required"),
+		description: z.string().trim().optional(),
 
 		title: z.string().trim().min(1, "Course title is required"),
 

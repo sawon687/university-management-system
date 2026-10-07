@@ -4,6 +4,7 @@ import { BaseController } from "../../utils/catchAsync";
 import statusCode from "http-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
 import studentService from "./student.service";
+import { IqueryProgram } from './students.interface';
 
 
 class StudentController extends BaseController {
@@ -40,11 +41,25 @@ class StudentController extends BaseController {
 	});
 
 	getAllProgramg = this.handle(async (req: Request, res: Response) => {
-		const queray = req.query;
+		const queray = req.query 
+		  console.log("CONTROLLER QUERY:", req.query);
 		const result = await studentService.getAllProgram(queray);
 
 		sendResponse(res, {
 			message: "program found",
+			status: statusCode.OK,
+			success: true,
+			data: result,
+		});
+	});
+
+		getDetailsProgram = this.handle(async (req: Request, res: Response) => {
+		const id = req.params?.id as string
+	
+		const result = await studentService.getDetailsProgramDB(id);
+
+		sendResponse(res, {
+			message: "Program retrey success fully",
 			status: statusCode.OK,
 			success: true,
 			data: result,

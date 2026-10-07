@@ -1,3 +1,4 @@
+import { includes } from "zod";
 import {
   type AdmissionStatus,
   CourseAssignmentStatus,
@@ -10,11 +11,14 @@ import {
 import type {
   CourseWhereInput,
   DepartmentWhereInput,
+  ProgramWhereInput,
   SemesterUpdateInput,
   UsersWhereInput,
 } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/pirsma";
-import { redisClient } from "../../lib/redis";
+import ejs from "ejs";
+import { IqueryProgram } from "../students/students.interface";
+import bcrypt from "bcrypt";
 import type {
   ICourse,
   ICourseAssingTeacher,
@@ -28,6 +32,10 @@ import type {
   Query,
 } from "./admin.interface";
 import crypto from "crypto";
+import { passwordGenerator } from "../../utils/randomPasswordGenaretor";
+import config from "../../config";
+import { transporter } from "../../lib/nodemiler";
+import path from "path";
 class AdminService {
   async createDepartmentDB(payload: IDepartment) {
     const { name, code, description } = payload;
@@ -52,6 +60,7 @@ class AdminService {
   async getALLDepartmentDB(search: string) {
     const condition: DepartmentWhereInput[] = [];
     const searchNormalization = search ?? "";
+
     if (searchNormalization) {
       condition.push({
         OR: [
@@ -70,6 +79,7 @@ class AdminService {
         ],
       });
     }
+
     const result = await prisma.department.findMany({
       where: { AND: condition },
       include: {
@@ -84,15 +94,15 @@ class AdminService {
       },
     });
 
-	
     return result;
   }
 
   async getAllUserDB(query: Query) {
-    const { role, status, department } = query;
-
+    const { role, status, department, search } = query;
+        console.log(`role:${role},status:${status},deparmtent:${department} search:${search}`)
     const whereQuery: UsersWhereInput = {};
     const departmentNormalization = department?.trim() ?? null;
+     const searchNormalization=search?.trim()?? null
     if (role) {
       whereQuery.role = role.toLocaleUpperCase() as Role;
     }
@@ -114,7 +124,44 @@ class AdminService {
           code: departmentNormalization.toLocaleUpperCase(),
         },
       };
+    } else if (departmentNormalization) {
+      whereQuery.OR = [
+        {
+          studentProfile: {
+            department: {
+              code: departmentNormalization.toLocaleUpperCase(),
+            },
+          },
+        },
+        {
+          instructorProfile: {
+            department: {
+              code: departmentNormalization.toLocaleUpperCase(),
+            },
+          },
+        },
+      ];
     }
+
+    if(searchNormalization){
+         whereQuery.OR=[
+            {
+               name:{
+                contains:searchNormalization,
+                mode:'insensitive'
+               }
+
+            },
+            {
+               email:{
+                contains:searchNormalization,
+                mode:'insensitive'
+               }
+            }
+           
+         ]
+    }
+    // if(query.search.tr)
     console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
     const result = await prisma.users.findMany({
       where: whereQuery,
@@ -129,10 +176,19 @@ class AdminService {
   async teachersCreateDB(payload: ITeacher) {
     const { name, email, departmentId, gender } = payload;
     console.log("paylaod", payload);
+
+    const password = passwordGenerator(12);
+
+    const passwordHash = await bcrypt.hash(
+      password,
+      Number(config.bycriptHashRound),
+    );
+
     const result = await prisma.users.create({
       data: {
         name,
         email,
+        password: passwordHash,
         role: Role.INSTRUCTOR,
         instructorProfile: {
           create: {
@@ -147,25 +203,31 @@ class AdminService {
         instructorProfile: true,
       },
     });
-
-    if (!result) {
-      throw new Error("Teacher Not Created");
+    if (config.node_env === "development") {
+      console.log(`password instrutor: ${password}`);
     }
-    console.log("result", result);
-
-    const token = crypto.randomBytes(32).toString("hex");
-
-    const readisTokenKey = `teacher:${token}`;
-    await redisClient.set(
-      readisTokenKey,
-      JSON.stringify({ email: result.email, token }),
-      {
-        EX: 60 * 60 * 24,
-      },
+    const templatesPath = path.join(
+      process.cwd(),
+      `/src/templates/instructor-created.ejs`,
     );
-    return {
-      tokenId: token,
+
+    const templateData = {
+      name: result.name,
+      email: result.email,
+      teacherCode: result.instructorProfile?.teacherCode,
+      password,
+      loginUrl: `${config.frontendUrl}/auth/login`,
     };
+    const html = await ejs.renderFile(templatesPath, templateData);
+    console.log("html", templateData);
+    await transporter.sendMail({
+      from: config.smt_user,
+      to: result.email,
+      subject: "Your UniSphere Instructor Account",
+      html,
+    });
+
+    return result;
   }
 
   async createProgramDB(payload: IProgram) {
@@ -344,14 +406,21 @@ class AdminService {
 
   async updateSemesterDB(paylaod: IUpdateSemester, id: string) {
     const { startDate, endDate, registrationOpen } = paylaod;
+    if (!id) {
+      throw new Error("Semester id not proivides");
+    }
+    const semesterExits = await prisma.semester.findUnique({ where: { id } });
+    if (!semesterExits) {
+      throw new Error("semester not provides");
+    }
     const whereSemesterUpdte: SemesterUpdateInput = {};
-    if (startDate) {
-      whereSemesterUpdte.startDate = startDate;
+    if (startDate?.trim()) {
+      whereSemesterUpdte.startDate = startDate.trim();
     }
-    if (endDate) {
-      whereSemesterUpdte.endDate = endDate;
+    if (endDate?.trim()) {
+      whereSemesterUpdte.endDate = endDate.trim();
     }
-    if (registrationOpen) {
+    if (registrationOpen == true || registrationOpen == false) {
       whereSemesterUpdte.registrationOpen = registrationOpen;
     }
     const result = await prisma.semester.update({
@@ -429,45 +498,200 @@ class AdminService {
 
     return result;
   }
-  async getAllCourse(payload: ICourseQuery) {
-    const { department, search } = payload;
 
-    const departmentNor = department?.trim() || null;
-    const searchNor = search?.trim() || null;
+  async getAllProgram(query: IqueryProgram) {
+    const { search, department, degreeType, page } = query;
 
-    const whereCondition: CourseWhereInput = {};
+    const whereProgramCondition: ProgramWhereInput = {};
 
-    if (departmentNor) {
-      whereCondition.department = {
-        code: departmentNor.toUpperCase(),
-      };
-    }
+    const searchNormalization = search?.trim() ?? null;
+    const departmentNormalization = department?.trim() ?? null;
+    const degreeTypeNormalization = degreeType?.trim() ?? null;
 
-    if (searchNor) {
-      whereCondition.OR = [
+    // Search: Program name + Department name
+    if (searchNormalization) {
+      whereProgramCondition.OR = [
         {
-          title: {
-            contains: searchNor,
+          name: {
+            contains: searchNormalization,
             mode: "insensitive",
           },
         },
         {
-          code: {
-            contains: searchNor,
-            mode: "insensitive",
+          department: {
+            name: {
+              contains: searchNormalization,
+              mode: "insensitive",
+            },
           },
         },
       ];
     }
 
-    const result = await prisma.course.findMany({
-      where: whereCondition,
-      include: {
-        department: true,
-      },
+    // Department filter
+    if (departmentNormalization && departmentNormalization !== "All") {
+      whereProgramCondition.department = {
+        code: departmentNormalization,
+      };
+    }
+
+    // Degree type filter
+    if (degreeTypeNormalization && degreeTypeNormalization !== "All") {
+      whereProgramCondition.degreeType =
+        degreeTypeNormalization.toUpperCase() as DegreeType;
+    }
+
+    // Pagination
+    const limit = 6;
+    const currentPage = Number(page) || 1;
+    const skip = limit * (currentPage - 1);
+
+    const [total, programs] = await Promise.all([
+      prisma.program.count({
+        where: whereProgramCondition,
+      }),
+
+      prisma.program.findMany({
+        where: whereProgramCondition,
+        skip,
+        take: limit,
+        include: {
+          department: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    console.log("programs", programs);
+    return {
+      total,
+      totalPages,
+      currentPage,
+      programs,
+    };
+  }
+
+  async getCourseAssignmentDataDB(query: ICourseQuery) {
+    console.log("query", query.departmentId);
+    const departmentIdNor = query.departmentId?.trim() || null;
+
+    const page = Math.max(Number(query.page) || 1, 1);
+    const limit = Math.max(Number(query.limit) || 6, 1);
+
+    const skip = (page - 1) * limit;
+
+    const whereCoursesCondition: CourseWhereInput[] = [];
+    const whereInstructorCondition: UsersWhereInput[] = [];
+
+    // Department filter for courses
+    if (departmentIdNor) {
+      whereCoursesCondition.push({
+        departmentId: departmentIdNor,
+      });
+    }
+
+    // Course search
+    if (query.courseSearch?.trim()) {
+      whereCoursesCondition.push({
+        OR: [
+          {
+            title: {
+              contains: query.courseSearch.trim(),
+              mode: "insensitive",
+            },
+          },
+          {
+            code: {
+              contains: query.courseSearch.trim(),
+              mode: "insensitive",
+            },
+          },
+        ],
+      });
+    }
+
+    // Instructor filter
+    whereInstructorCondition.push({
+      role: Role.INSTRUCTOR,
+      deletedAt: null,
     });
 
-    return result;
+    // Instructor department filter
+    if (departmentIdNor) {
+      whereInstructorCondition.push({
+        instructorProfile: {
+          departmentId: departmentIdNor,
+        },
+      });
+    }
+
+    // Instructor search
+    if (query.instructorSearch?.trim()) {
+      whereInstructorCondition.push({
+        OR: [
+          {
+            name: {
+              contains: query.instructorSearch.trim(),
+              mode: "insensitive",
+            },
+          },
+          {
+            email: {
+              contains: query.instructorSearch?.trim(),
+              mode: "insensitive",
+            },
+          },
+        ],
+      });
+    }
+
+    const [course, instructor, totalCourse] = await Promise.all([
+      prisma.course.findMany({
+        where: {
+          AND: whereCoursesCondition,
+        },
+        include: {
+          department: true,
+        },
+        take: limit,
+        skip,
+      }),
+
+      prisma.users.findMany({
+        where: {
+          AND: whereInstructorCondition,
+        },
+        include: {
+          instructorProfile: {
+            select: {
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.course.count({
+        where: {
+          AND: whereCoursesCondition,
+        },
+      }),
+    ]);
+    const totalpage = Math.ceil(Number(totalCourse) / Number(query.limit));
+    return {
+      course,
+      instructor,
+      meta: {
+        totalpage,
+        page,
+        limit,
+      },
+    };
   }
 
   async getALLSemester() {
