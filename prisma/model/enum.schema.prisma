@@ -26,7 +26,10 @@ enum AdmissionStatus {
   REJECTED
   PAID
 }
-
+enum EducationType {
+  HSC
+  DIPLOMA
+}
 enum SemesterType {
   TRI_SEMESTER
   BI_SEMESTER

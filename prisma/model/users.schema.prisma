@@ -8,7 +8,6 @@ model Users {
   role              Role                  @default(STUDENT)
   userStatus         UserStatus           @default(PENDING)
   authProvider      AuthProvider          @default(CREDENTIAL)
-  userPhoto         String                @default("")
   imagePublicId     String                @default("")
   studentProfile    StudentProfile?       @relation("studentProfile")
   instructorProfile InstructorProfile?    @relation("instructorProfile")

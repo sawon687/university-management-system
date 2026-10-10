@@ -1,13 +1,14 @@
 model AdmissionApplication {
-  id        String @id @default(uuid())
-  userId    String @unique
+  id        String   @id @default(uuid())
+  userId    String   @unique
   programId String
 
-  previousInstitution String?
-  previousDegree      String?
-  sscResult           Float?
-  hscResult           Float?
-  diplomaResult       Float?
+  educationType EducationType @default(HSC)
+
+
+  sscResult     Json     // { url: string, publicId: string }
+  hscResult     Json?    // { url: string, publicId: string }
+  diplomaResult Json?    // { url: string, publicId: string }
 
   status AdmissionStatus @default(PENDING)
 
@@ -23,6 +24,7 @@ model AdmissionApplication {
   updatedAt DateTime @updatedAt
   payments  Payment?
 
+  @@unique([userId, programId])
   @@index([userId])
   @@index([programId])
   @@index([status])

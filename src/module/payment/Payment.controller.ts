@@ -35,6 +35,7 @@ class PaymentController extends BaseController {
       config.stripeWebhookSecret,
     );
 
+    console.log('body',event,'event',req.body)
     const result = await paymentService.confirmPaymentDB(event);
 
     sendResponse(res, {

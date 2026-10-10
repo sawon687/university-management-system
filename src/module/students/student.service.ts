@@ -3,7 +3,7 @@ import {
   AdmissionStatus,
   type DegreeType,
   PaymentType,
-  type Prisma,
+  Prisma,
   SemesterType,
 } from "../../../generated/prisma/client";
 import type {
@@ -19,6 +19,9 @@ import type {
   IStudentEnrolement,
   IStudentProfile,
 } from "./students.interface";
+import { UploadApiResponse } from "cloudinary";
+import cloudinary from "../../lib/cloudinary";
+import { uploadToCloudinary } from "../../utils/cludinaryfileuploaded";
 
 class StudentService {
   async updateProfileDB(payload: IStudentProfile) {
@@ -49,48 +52,111 @@ class StudentService {
     return result;
   }
 
-  async admissionApplicationDB(payload: IAdmissionApplication) {
-    const {
-      userId,
-      programId,
-      previousDegree,
-      previousInstitution,
-      sscResult,
-      hscResult,
-      diplomaResult,
-    } = payload;
+  async admissionApplicationDB(
+    payload: IAdmissionApplication,
+    sscFile: Express.Multer.File,
+    hscFile: Express.Multer.File,
+    diplomaFile?: Express.Multer.File,
+  ) {
+    const { userId, programId, educationType } = payload;
 
+    // 1. Check if user has already applied
     const applicationExists = await prisma.admissionApplication.findUnique({
-      where: { id: userId },
+      where: { userId },
     });
 
     if (applicationExists) {
       throw new Error("This user has already submitted an application");
     }
+
+    // 2. Required SSC document
+    if (!sscFile) {
+      throw new Error("SSC result document is required");
+    }
+
+    // 3. Required HSC document for HSC students
+    if (educationType === "HSC" && !hscFile) {
+      throw new Error("HSC result document is required");
+    }
+
+    // 4. Cloudinary folder
+    const folderPath = "university-management/admission";
+
+    // 5. Helper to determine Cloudinary resource type
+    const getResourceType = (file: Express.Multer.File): "image" | "raw" => {
+      if (file.mimetype.startsWith("image/")) {
+        return "image";
+      }
+
+      if (file.mimetype === "application/pdf") {
+        return "raw";
+      }
+
+      throw new Error(`Unsupported file type: ${file.mimetype}`);
+    };
+
+    // 6. SSC upload
+    const sscResourceType = getResourceType(sscFile);
+
+    const sscResultData = await uploadToCloudinary(
+      sscFile.buffer,
+      folderPath,
+      sscResourceType,
+    );
+
+    // 7. HSC upload
+    let hscResultData = null;
+
+    if (hscFile) {
+      const hscResourceType = getResourceType(hscFile);
+
+      hscResultData = await uploadToCloudinary(
+        hscFile.buffer,
+        folderPath,
+        hscResourceType,
+      );
+    }
+
+    // 8. Diploma upload
+    let diplomaResultData = null;
+
+    if (diplomaFile) {
+      const diplomaResourceType = getResourceType(diplomaFile);
+
+      diplomaResultData = await uploadToCloudinary(
+        diplomaFile.buffer,
+        folderPath,
+        diplomaResourceType,
+      );
+    }
+
+    // 9. Create admission application
     const result = await prisma.admissionApplication.create({
       data: {
         userId,
         programId,
-        previousDegree: previousDegree ?? null,
-        previousInstitution: previousInstitution ?? null,
+        educationType: educationType || "HSC",
+
         status: AdmissionStatus.PENDING,
-        sscResult: sscResult ?? null,
-        hscResult: hscResult ?? null,
-        diplomaResult: diplomaResult ?? null,
+
+        sscResult: sscResultData,
+
+        hscResult: hscResultData ?? Prisma.DbNull,
+
+        diplomaResult: diplomaResultData ?? Prisma.DbNull,
       },
     });
 
     return result;
   }
-
   async getAllProgram(query: IqueryProgram) {
-    const { search, department, degree, page, study } = query;
+    const { search, department, degreeType, page, study } = query;
 
     const whereProgramCondition: ProgramWhereInput = {};
 
     const searchNormalization = search?.trim() ?? null;
     const departmentNormalization = department?.trim() ?? null;
-    const degreeTypeNormalization = degree?.trim() ?? null;
+    const degreeTypeNormalization = degreeType?.trim() ?? null;
     const studyNor = study?.trim() ?? null;
 
     // Search: Program name + Department name
@@ -135,7 +201,7 @@ class StudentService {
       whereProgramCondition.semesterType = studyNor as SemesterType;
     }
     // Degree type filter
-    console.log("degree", degree);
+    console.log("degree", degreeType);
     if (degreeTypeNormalization && degreeTypeNormalization !== "All Degree") {
       whereProgramCondition.degreeType = degreeTypeNormalization as DegreeType;
     }
@@ -191,8 +257,16 @@ class StudentService {
   }
 
   async myApplication(id: string) {
-    const result = await prisma.admissionApplication.findMany({
-      where: { userId: id }
+    const result = await prisma.admissionApplication.findUnique({
+      where: { userId: id },
+      include: {
+        user: true,
+        program: {
+          include: {
+            department: true,
+          },
+        },
+      },
     });
     return result;
   }
@@ -377,29 +451,61 @@ class StudentService {
     return result;
   }
   async GetfeeInstalmentDB(userId: string, semesterId: string) {
-    const whereConditon: FeeWhereInput = {};
-
-    whereConditon.studentId = userId;
-    if (semesterId) {
-      whereConditon.semesterId = semesterId.trim();
+    if(!semesterId){
+      throw new Error('Pleace selectd your semester')
     }
 
-    const result = await prisma.fee.findMany({ where: whereConditon });
+    const result = await prisma.fee.findUnique({ where:{
+      studentId_semesterId:{
+        studentId:userId,
+        semesterId
+      }
+    } });
 
     return result;
   }
 
-  async myEnrolementDB(id: string) {
-    const result = await prisma.enrollment.findMany({
-      where: { studentId: id },
+  async myEnrolementDB(id: string,semesterId:string) {
+  
+
+    const result = await prisma.enrollment.findUnique({
+      where: {
+        studentId_semesterId: {
+          studentId: id,
+          semesterId,
+        },
+      },
       include: {
         Enrolementcourses: {
           include: {
             course: {
-              select: {
-                title: true,
+              include: {
+                department: true,
               },
             },
+          },
+        },
+      },
+    });
+
+    const totalCredit =
+      result?.Enrolementcourses.reduce(
+        (total, enrollmentCourse) => total + enrollmentCourse.course.credit,
+        0,
+      ) ?? 0;
+
+    return {
+      ...result,
+      totalCredit,
+    };
+  }
+  async mySemesterDB(userId: string, ) {
+    const result = await prisma.semester.findMany({
+      where: {
+        enrollments: {
+          some: {
+            studentId: userId,
+         
           },
         },
       },
@@ -572,6 +678,176 @@ class StudentService {
       data: courses,
     };
   }
+
+
+async getStudentDashboardDB(studentId: string) {
+  if (!studentId) {
+    throw new Error("Student ID is required");
+  }
+
+  const [
+    student,
+    studentProfile,
+    admissionApplication,
+    enrollments,
+    gpaResults,
+    fees,
+    totalResults,
+  ] = await Promise.all([
+    // 1. Student basic information + profile photo
+    prisma.users.findUnique({
+      where: {
+        id: studentId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        studentProfile: {
+          select: {
+            profilePhoto: true,
+          },
+        },
+      },
+    }),
+
+    // 2. Student profile details
+    prisma.studentProfile.findUnique({
+      where: {
+        studentId,
+      },
+    }),
+
+    // 3. Admission application
+    prisma.admissionApplication.findUnique({
+      where: {
+        userId: studentId,
+      },
+      include: {
+        program: {
+          include: {
+            department: true,
+          },
+        },
+      },
+    }),
+
+    // 4. Student enrollments
+    prisma.enrollment.findMany({
+      where: {
+        studentId,
+      },
+      include: {
+        semester: true,
+        Enrolementcourses: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true,
+                code: true,
+                credit: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+
+    // 5. GPA results
+    prisma.gPAResult.findMany({
+      where: {
+        studentId,
+      },
+      include: {
+        semester: true,
+      },
+    }),
+
+    // 6. Student fees
+    prisma.fee.findMany({
+      where: {
+        studentId,
+      },
+    }),
+
+    // 7. Total result count
+    prisma.result.count({
+      where: {
+        studentId,
+      },
+    }),
+  ]);
+
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  // Total enrolled courses
+  const totalCourses = enrollments.reduce(
+    (total, enrollment) =>
+      total + enrollment.Enrolementcourses.length,
+    0,
+  );
+
+  // Total credits
+  const totalCredits = enrollments.reduce(
+    (total, enrollment) =>
+      total +
+      enrollment.Enrolementcourses.reduce(
+        (courseTotal, item) =>
+          courseTotal + Number(item.course.credit),
+        0,
+      ),
+    0,
+  );
+
+  // Total fees
+  const totalFees = fees.reduce(
+    (total, fee) => total + Number(fee.totalAmount),
+    0,
+  );
+
+  // Total paid amount
+  const totalPaid = fees.reduce(
+    (total, fee) =>
+      total +
+      Math.max(
+        0,
+        Number(fee.totalAmount) - Number(fee.remainingAmount),
+      ),
+    0,
+  );
+
+  // Total outstanding amount
+  const totalDue = fees.reduce(
+    (total, fee) => total + Number(fee.remainingAmount),
+    0,
+  );
+
+  return {
+    student,
+    studentProfile,
+    admissionApplication,
+
+    statistics: {
+      enrolledSemesters: enrollments.length,
+      totalCourses,
+      totalCredits,
+      totalResults,
+      totalFees,
+      totalPaid,
+      totalDue,
+    },
+
+    enrollments,
+    gpaResults,
+    fees,
+  };
+}
+
+
 }
 
 export default new StudentService();

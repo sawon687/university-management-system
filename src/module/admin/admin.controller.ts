@@ -4,8 +4,8 @@ import adminService from "./admin.service";
 import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
-import type { ICourseQuery, Query } from "./admin.interface";
-import type { Role } from "../../../generated/prisma/enums";
+import type { AdmissionQuery, ICourseQuery, Query } from "./admin.interface";
+import type { AdmissionStatus, Role } from "../../../generated/prisma/enums";
 
 class Admin extends BaseController {
   CreateDepartment = this.handle(async (req: Request, res: Response) => {
@@ -69,13 +69,16 @@ class Admin extends BaseController {
     });
   });
   updateApplicationStatus = this.handle(async (req: Request, res: Response) => {
-    const status = req.body?.status;
+    const body = req.body;
+    console.log('body',body)
     const id = req.params?.id as string;
-
-    const result = await adminService.updateStatusApplicationDB(id, status);
+    const adminId=req.user?.id
+     const paylaod={...body,adminId}
+     console.log('update paylaod',paylaod)
+    const result = await adminService.updateStatusApplicationDB(id, paylaod);
 
     sendResponse(res, {
-      message: `Application ${status} is  SuccessFully`,
+      message: `Application ${paylaod.status} is  SuccessFully`,
       status: statusCode.OK,
       success: true,
       data: result,
@@ -84,7 +87,6 @@ class Admin extends BaseController {
 
   getAllUser = this.handle(async (req: Request, res: Response) => {
     const query = req.query as Query | any;
-  
 
     const result = await adminService.getAllUserDB(query);
     sendResponse(res, {
@@ -155,10 +157,12 @@ class Admin extends BaseController {
   });
 
   getAllStudenApplication = this.handle(async (req: Request, res: Response) => {
-    const result = await adminService.getllStudentApplicationDB();
+    const query = req.query as AdmissionQuery
+    console.log('querary admisson',query)
+    const result = await adminService.getllStudentApplicationDB(query);
 
     sendResponse(res, {
-      message: `Update create is successfully`,
+      message: `Admisson Retrey successfully`,
       status: statusCode.OK,
       success: true,
       data: result,

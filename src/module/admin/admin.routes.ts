@@ -29,9 +29,7 @@ router.get('/all-program',adminController.getAllPrograms)
 router.patch(
   "/admissions/:id/status",
   auth("ADMIN"),
-  validationReq.validate(
-    adminValidation.updateApplicationStatusValidationSchema,
-  ),
+
   adminController.updateApplicationStatus,
 );
 router.get("/department", adminController.getAllDepartment);

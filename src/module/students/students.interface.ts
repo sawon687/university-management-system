@@ -9,17 +9,14 @@ export interface IStudentProfile {
 export interface IAdmissionApplication {
   userId: string;
   programId: string;
-  previousInstitution?: string;
-  previousDegree?: string;
-  sscResult?: number;
-  hscResult?: number;
-  diplomaResult?: number;
+   educationType:"HSC" | "DIPLOMA";
+
 }
 
 export interface IqueryProgram {
   search?: string;
   department?: string;
-  degree?: "BSC" | "MSC" | "BA" | "BBA" | "MBA";
+  degreeType?: "BSC" | "MSC" | "BA" | "BBA" | "MBA";
   page?: string;
   study?:string
 }

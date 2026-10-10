@@ -18,9 +18,9 @@ router.post("/login", authController.login);
 router.post("/google-login", authController.googleLogin);
 router.post("/refresh-token", authController.refreshToken);
 router.post("/forgot-password", authController.forgotPassword);
-router.get('/getme',auth(Role.STUDENT,Role.INSTRUCTOR,Role.INSTRUCTOR), authController.getMe)
+router.get('/getme',auth(Role.STUDENT,Role.INSTRUCTOR,Role.ADMIN), authController.getMe)
 router.patch('/update-password',validationReq.validate(authValidation.resetPasswordSchema),authController.updatePassword)
 router.post('/logout',authController.logout)
 
 
-export const authRouter = router;
+export const authRouter = router; 

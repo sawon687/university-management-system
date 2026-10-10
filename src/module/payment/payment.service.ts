@@ -74,7 +74,8 @@ class PaymentService {
 
             userId,
           },
-          success_url: `${config.appurl}/payment/success?sessionId={CHECKOUT_SESSION_ID}`,
+          success_url: `${config.appurl}/payment/success?sessionId={CHECKOUT_SESSION_ID}&
+          name=${encodeURIComponent(application.user.name)}&amount=${Math.round(amount * 100)}&currency=BDT`,
 
           cancel_url: `${config.appurl}/payment/cancel?sessionId={CHECKOUT_SESSION_ID}`,
         });
@@ -153,7 +154,7 @@ class PaymentService {
             userId: fees.studentId,
           },
 
-          success_url: `${config.appurl}/payment/success?sessionId={CHECKOUT_SESSION_ID}`,
+          success_url: `${config.appurl}/payment/success?sessionId={CHECKOUT_SESSION_ID}&name=${encodeURIComponent(fees.student?.name ?? "Student")}&amount=${Math.round(Number(semesterFees) * 100)}&currency=BDT`,
 
           cancel_url: `${config.appurl}/payment/cancel?sessionId={CHECKOUT_SESSION_ID}`,
         });
@@ -497,12 +498,18 @@ class PaymentService {
   }
 
   async getALLPaymentStudent(id: string) {
-    const result = await prisma.payment.findMany({ where: { userId: id } });
+    const result = await prisma.payment.findMany({ where: { userId: id },
+      include:{
+        user:true
+      }
+     });
     return result;
   }
 
   async getSinglePaymentStudent(id: string) {
-    const result = await prisma.payment.findUnique({ where: { id } });
+    const result = await prisma.payment.findUnique({ where: { id }
+
+     });
     return result;
   }
 }

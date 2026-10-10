@@ -9,6 +9,8 @@ import {
   UserStatus,
 } from "../../../generated/prisma/enums";
 import type {
+  AdmissionApplicationWhereInput,
+  AdmissionApplicationUpdateInput,
   CourseWhereInput,
   DepartmentWhereInput,
   ProgramWhereInput,
@@ -20,6 +22,7 @@ import ejs from "ejs";
 import { IqueryProgram } from "../students/students.interface";
 import bcrypt from "bcrypt";
 import type {
+  AdmissionQuery,
   ICourse,
   ICourseAssingTeacher,
   ICourseQuery,
@@ -30,6 +33,7 @@ import type {
   ITeacher,
   IUpdateSemester,
   Query,
+  ReviewAdmisson,
 } from "./admin.interface";
 import crypto from "crypto";
 import { passwordGenerator } from "../../utils/randomPasswordGenaretor";
@@ -99,10 +103,12 @@ class AdminService {
 
   async getAllUserDB(query: Query) {
     const { role, status, department, search } = query;
-        console.log(`role:${role},status:${status},deparmtent:${department} search:${search}`)
+    console.log(
+      `role:${role},status:${status},deparmtent:${department} search:${search}`,
+    );
     const whereQuery: UsersWhereInput = {};
     const departmentNormalization = department?.trim() ?? null;
-     const searchNormalization=search?.trim()?? null
+    const searchNormalization = search?.trim() ?? null;
     if (role) {
       whereQuery.role = role.toLocaleUpperCase() as Role;
     }
@@ -143,23 +149,21 @@ class AdminService {
       ];
     }
 
-    if(searchNormalization){
-         whereQuery.OR=[
-            {
-               name:{
-                contains:searchNormalization,
-                mode:'insensitive'
-               }
-
-            },
-            {
-               email:{
-                contains:searchNormalization,
-                mode:'insensitive'
-               }
-            }
-           
-         ]
+    if (searchNormalization) {
+      whereQuery.OR = [
+        {
+          name: {
+            contains: searchNormalization,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: searchNormalization,
+            mode: "insensitive",
+          },
+        },
+      ];
     }
     // if(query.search.tr)
     console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
@@ -269,14 +273,29 @@ class AdminService {
 
     return result;
   }
-  async updateStatusApplicationDB(id: string, status: AdmissionStatus) {
+  async updateStatusApplicationDB(id: string, payload: ReviewAdmisson) {
     if (!id) {
-      throw new Error("id is Emptay");
+      throw new Error("Application ID is required");
     }
+ if (payload.status === "REJECTED" && !payload.rejectionReason?.trim()) {
+      throw new Error("Rejection reason is required");
+    }
+
+    const reviewData: AdmissionApplicationUpdateInput = {
+      status: payload.status,
+      reviewedBy: payload.adminId,
+      rejectionReason:
+        payload.status === "REJECTED"
+          ? payload.rejectionReason?.trim()?payload.rejectionReason:null
+          : null,
+    };
+
+   
     const result = await prisma.admissionApplication.update({
       where: { id },
-      data: { status },
+      data: reviewData,
     });
+
     return result;
   }
 
@@ -409,6 +428,7 @@ class AdminService {
     if (!id) {
       throw new Error("Semester id not proivides");
     }
+
     const semesterExits = await prisma.semester.findUnique({ where: { id } });
     if (!semesterExits) {
       throw new Error("semester not provides");
@@ -431,8 +451,54 @@ class AdminService {
     return result;
   }
 
-  async getllStudentApplicationDB() {
-    const result = await prisma.admissionApplication.findMany();
+  async getllStudentApplicationDB(query: AdmissionQuery) {
+    const andConditon: AdmissionApplicationWhereInput[] = [];
+    const search = query.search?.trim();
+    if (search) {
+      andConditon.push({
+        OR: [
+          {
+            user: {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            program: {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          },
+        ],
+      });
+    }
+
+    if (query.status && query.status !== "All") {
+      andConditon.push({
+        status: String(query.status).trim() as AdmissionStatus,
+      });
+    }
+    const result = await prisma.admissionApplication.findMany({
+      where: { AND: andConditon },
+      include: {
+        user: {
+          include: {
+            studentProfile: true,
+          },
+        },
+        program: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
     return result;
   }
@@ -654,7 +720,8 @@ class AdminService {
           AND: whereCoursesCondition,
         },
         include: {
-          department: true,
+          department:true,
+          
         },
         take: limit,
         skip,

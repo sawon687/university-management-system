@@ -70,6 +70,22 @@ class Teachers extends BaseController {
 			data: result,
 		});
 	});
+
+	
+async instructorDashboardStats(req: Request, res: Response) {
+  const instructorId = req.user.id;
+
+  const result =
+    await teachersService.instructorDashboardStatsDB(instructorId);
+
+  res.status(200).json({
+    success: true,
+    message: "Instructor dashboard stats retrieved successfully",
+    data: result,
+  });
+}
+
+
 }
 
 export default new Teachers();

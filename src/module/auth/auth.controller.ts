@@ -79,9 +79,7 @@ class AuthController extends BaseController {
     });
   });
 
-  me = this.handle(async (req: Request, res: Response) => {
-
-  });
+  
 
   googleLogin = this.handle(async (req: Request, res: Response) => {
     console.log("googleLogin", req.body);

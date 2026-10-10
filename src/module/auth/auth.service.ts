@@ -24,6 +24,7 @@ import config from "../../config";
 import { generateAndSaveOtp } from "../../utils/handleOtp";
 import { OtpPurpose } from "../../constants/otp";
 import { randomBytes } from "crypto";
+import { includes } from 'zod';
 class AuthService {
   async createDB(payload: IUser) {
     console.log("paylaod", payload);
@@ -48,6 +49,11 @@ class AuthService {
       OtpPurpose.EMAIL_VERIFICATION,
     );
 
+    if(config.node_env==='development')
+    {
+       console.log(`verifaycation code ${otp}`)
+    }
+
     const templatesPath = path.join(
       process.cwd(),
       `/src/templates/registration-user-otp.ejs`,
@@ -65,7 +71,7 @@ class AuthService {
         studentProfile: {
           create: {
             phone: payload.phone || "",
-            departmentId: "",
+            
           },
         },
       },
@@ -445,19 +451,31 @@ class AuthService {
     };
   }
 
-    async getMeDB(id: string,role:Role) {
-      const result = await prisma.users.findUnique({
-        where: { id },
-        include: {
-          studentProfile:role===Role.STUDENT,
-          instructorProfile:role===Role.INSTRUCTOR
-        },
-        omit: {
-          password: true,
-        },
-      });
-      return result;
-    }
+    async getMeDB(id: string, role: Role) {
+  const result = await prisma.users.findUnique({
+    where: { id },
+    include: {
+      studentProfile:
+        role === Role.STUDENT
+          ? true
+          : false,
+
+      instructorProfile:
+        role === Role.INSTRUCTOR
+          ? {
+              include: {
+                department: true,
+              },
+            }
+          : false,
+    },
+    omit: {
+      password: true,
+    },
+  });
+
+  return result;
+}
 }
 
 export default new AuthService();

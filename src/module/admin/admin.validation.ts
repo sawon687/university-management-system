@@ -43,13 +43,10 @@ const createProgramValidationSchema = z.object({
 	}),
 });
 
-const updateApplicationStatusValidationSchema = z.object({
-  body: z.object({
-    status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "PAID"]),
-  }),
+
 
   
-});
+
 const updateUserStatusValidationSchema = z.object({
 	body: z.object({
 		status: z.enum([
@@ -133,7 +130,7 @@ export const instructorcreateValidationSchema = z.object({
 export const adminValidation = {
 	createDepartmentValidationSchema,
 	createProgramValidationSchema,
-	updateApplicationStatusValidationSchema,
+
 	updateUserStatusValidationSchema,
 	createCourseValidationSchema,
 	createPrerequisiteValidationSchema,

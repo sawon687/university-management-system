@@ -1,81 +1,82 @@
 import type {
-	Gender,
-	Role,
-	SemesterCode,
-	SemesterType,
-	UserStatus,
+	AdmissionStatus,
+  Gender,
+  Role,
+  SemesterCode,
+  SemesterType,
+  UserStatus,
 } from "../../../generated/prisma/enums";
 
 export interface IDepartment {
-	name: string;
-	code: string;
-	description?: string;
+  name: string;
+  code: string;
+  description?: string;
 }
 
 export interface ITeacher {
-	name: string;
-	email: string;
-	departmentId: string;
-	gender: Gender;
+  name: string;
+  email: string;
+  departmentId: string;
+  gender: Gender;
 }
 
 export interface IProgram {
-	departmentId: string;
-	name: string;
-	code: string;
-	semester: number;
-	semesterType: SemesterType;
-	degreeType: string;
-	duration: number;
-	totalCredits: number;
-	description: string;
-	admissionFee: number;
-	tuitionFee: number;
-	isActive: boolean;
-	perCreditFee: number;
-	totalFee: number;
+  departmentId: string;
+  name: string;
+  code: string;
+  semester: number;
+  semesterType: SemesterType;
+  degreeType: string;
+  duration: number;
+  totalCredits: number;
+  description: string;
+  admissionFee: number;
+  tuitionFee: number;
+  isActive: boolean;
+  perCreditFee: number;
+  totalFee: number;
 }
 
 export interface ICourse {
-	title: string;
-	code: string;
-	description: string;
-	departmentId: string;
-	programId: string;
-	credit: number;
-	semesterNumber: number;
+  title: string;
+  code: string;
+  description: string;
+  departmentId: string;
+  programId: string;
+  credit: number;
+  semesterNumber: number;
 }
 
 export interface Query {
-	role?: Role;
-	status?: UserStatus;
-	department?: string;
-	search?:string
+  role?: Role;
+  status?: UserStatus;
+  department?: string;
+  search?: string;
 }
 
 export interface ICreatePrerequisite {
-	courseId: string;
-	prerequisiteCourseId: string;
+  courseId: string;
+  prerequisiteCourseId: string;
 }
 
 export interface ISemester {
-	name: SemesterCode;
-	year: number;
+  name: SemesterCode;
+  year: number;
 
-	startDate: string;
-	endDate: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface IUpdateSemester {
-	startDate?: string;
-	endDate?: string;
-	registrationOpen?: boolean;
+  startDate?: string;
+  endDate?: string;
+  registrationOpen?: boolean;
 }
 
 export interface ICourseAssingTeacher {
-	courseId: string;
-	instructorId: string;
-	semesterId: string;
+  courseId: string;
+  instructorId: string;
+  semesterId: string;
 }
 
 // export interface ICourseQuery {
@@ -84,8 +85,20 @@ export interface ICourseAssingTeacher {
 // }
 
 export interface ICourseQuery {
-    departmentId:string
-  page:string,
-  limit:string
+  departmentId: string;
+  page: string;
+  limit: string;
   [key: string]: string;
+}
+
+export interface AdmissionQuery {
+  search?: string;
+
+  status?: AdmissionStatus & 'All';
+}
+
+export interface ReviewAdmisson{
+	status:AdmissionStatus,
+     rejectionReason?:string
+	 adminId:string
 }

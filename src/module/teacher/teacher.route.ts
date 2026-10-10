@@ -23,7 +23,7 @@ router.patch(
 router.post(
 	"/mycourse/:id/exam",
 	auth("INSTRUCTOR"),
-	validationReq.validate(teacherValidation.createExamValidationSchema),
+	// validationReq.validate(teacherValidation.createExamValidationSchema),
 	teachersController.myCoursesExamCreated,
 );
 router.get(
@@ -37,4 +37,11 @@ router.post(
 	validationReq.validate(teacherValidation.courseMarksValidationSchema),
 	teachersController.courseMarks,
 );
+
+router.get(
+  "/dashboard-stats",
+  auth("INSTRUCTOR"),
+  teachersController.instructorDashboardStats,
+);
+
 export const teacherRouter = router;

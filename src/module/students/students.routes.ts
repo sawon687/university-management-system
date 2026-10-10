@@ -3,6 +3,7 @@ import studentController from "./student.controller";
 import { auth } from "../../midileware/auth";
 import { validationReq } from "../../midileware/validationReq";
 import { studentValidation } from "./stuent.validation";
+import { upload } from '../../lib/multer';
 
 const router = Router();
 
@@ -14,9 +15,15 @@ router.patch(
 );
 router.post(
   "/application-admission",
-  auth("STUDENT"),
-  validationReq.validate(studentValidation.admissionBodySchema),
-  studentController.admissionApplication,
+    auth("STUDENT"),
+   upload.fields([
+    {name:'sscResult', maxCount:1},
+    {name:'hscResult',maxCount:1},
+     {name:'diplomaResult',maxCount:1}
+   ]),
+
+ 
+  studentController.admissionApplication
 );
 router.get("/all-Program", studentController.getAllProgramg);
 router.get('/all-Program/:id',studentController.getDetailsProgram)
@@ -33,6 +40,12 @@ router.get(
   auth("STUDENT"),
   studentController.getFeeInstalment,
 );
-router.get("/my-enrolement", auth("STUDENT"), studentController.myEnrolement);
+router.get("/my-enrolement/:id", auth("STUDENT"), studentController.myEnrolement);
+router.get('/my-semester',auth('STUDENT'),studentController.mySemester)
 router.post("/my-gpa", auth("STUDENT"), studentController.mygpa);
+router.get(
+  "/dashboard",
+  auth("STUDENT"),
+  studentController.getDasbhoard,
+);
 export const studentRouter = router;
