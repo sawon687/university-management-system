@@ -24,7 +24,7 @@ import config from "../../config";
 import { generateAndSaveOtp } from "../../utils/handleOtp";
 import { OtpPurpose } from "../../constants/otp";
 import { randomBytes } from "crypto";
-import { includes } from 'zod';
+import { includes } from "zod";
 class AuthService {
   async createDB(payload: IUser) {
     console.log("paylaod", payload);
@@ -49,9 +49,8 @@ class AuthService {
       OtpPurpose.EMAIL_VERIFICATION,
     );
 
-    if(config.node_env==='development')
-    {
-       console.log(`verifaycation code ${otp}`)
+    if (config.node_env === "development") {
+      console.log(`verifaycation code ${otp}`);
     }
 
     const templatesPath = path.join(
@@ -71,7 +70,6 @@ class AuthService {
         studentProfile: {
           create: {
             phone: payload.phone || "",
-            
           },
         },
       },
@@ -102,10 +100,19 @@ class AuthService {
     const email = payload.email.trim().toLowerCase();
     const { otp, purpose } = payload;
 
+    // 1. Validate OTP and purpose
     if (!otp) {
       throw new Error("Invalid OTP");
     }
 
+    if (
+      purpose !== OtpPurpose.EMAIL_VERIFICATION &&
+      purpose !== OtpPurpose.PASSWORD_RESET
+    ) {
+      throw new Error("Invalid OTP purpose");
+    }
+
+    // 2. Find user
     const userExists = await prisma.users.findUnique({
       where: { email },
     });
@@ -114,44 +121,55 @@ class AuthService {
       throw new Error("User not found");
     }
 
+    // 3. Email verification checks
     if (purpose === OtpPurpose.EMAIL_VERIFICATION && userExists.emailVerified) {
       throw new Error("User already verified");
     }
 
+    // 4. Password reset requires a verified email
     if (purpose === OtpPurpose.PASSWORD_RESET && !userExists.emailVerified) {
       throw new Error("This user is not verified");
     }
 
+    if (userExists.isDeleted) {
+      throw new Error("user is Deleted account");
+    }
+    // 5. Get OTP from Redis
     const otpKey = `otpkey:${purpose}:${email}`;
     const redisOtp = await redisClient.get(otpKey);
 
     if (!redisOtp) {
       throw new Error("OTP has expired or is invalid");
     }
-    if (
-      purpose !== OtpPurpose.EMAIL_VERIFICATION &&
-      purpose !== OtpPurpose.PASSWORD_RESET
-    ) {
-      throw new Error("Invalid OTP purpose");
-    }
+
     if (redisOtp !== otp.toString()) {
       throw new Error("OTP value does not match");
     }
 
+    // Delete OTP only after successful validation
     await redisClient.del(otpKey);
 
-    if (OtpPurpose.PASSWORD_RESET === purpose) {
+    // ==========================================
+    // LOGIC 1: PASSWORD RESET OTP VERIFICATION
+    // ==========================================
+    if (purpose === OtpPurpose.PASSWORD_RESET) {
       const token = randomBytes(32).toString("hex");
 
       const tokenKey = `ResetPasswordToken:${email}`;
-      const expirationSeconds = 60 * 10;
-      await redisClient.set(tokenKey, token.toString(), {
-        EX: expirationSeconds,
+
+      await redisClient.set(tokenKey, token, {
+        EX: 60 * 10, // 10 minutes
       });
 
-      return {token};
+      return {
+        purpose: OtpPurpose.PASSWORD_RESET,
+        token,
+      };
     }
 
+    // ==========================================
+    // LOGIC 2: EMAIL VERIFICATION + LOGIN
+    // ==========================================
     const result = await prisma.users.update({
       where: { email },
       data: {
@@ -163,32 +181,61 @@ class AuthService {
       },
     });
 
-    const templatesPath = path.join(
-      process.cwd(),
-      "src/templates/wecome-message.ejs",
+    const jwtPayload = {
+      userId: result.id,
+      name: result.name,
+      email: result.email,
+      role: result.role,
+    };
+
+    const accessToken = jwtUtils.createToken(
+      jwtPayload,
+      config.accessSecret,
+      config.jwt_access_Expires as SignOptions,
     );
 
-    const html = await ejs.renderFile(templatesPath, {
-      name: result.name,
-    });
+    const refreshToken = jwtUtils.createToken(
+      jwtPayload,
+      config.refreshSecret,
+      config.jwt_refresh_Expires as SignOptions,
+    );
 
-    await transporter.sendMail({
-      from: config.smt_user,
-      to: result.email,
-      subject: "Welcome to UniSphere",
-      html,
-    });
+    // Send welcome email without blocking successful verification
+    try {
+      const templatesPath = path.join(
+        process.cwd(),
+        "src/templates/wecome-message.ejs",
+      );
 
-    return result;
+      const html = await ejs.renderFile(templatesPath, {
+        name: result.name,
+      });
+
+      await transporter.sendMail({
+        from: config.smt_user,
+        to: result.email,
+        subject: "Welcome to UniSphere",
+        html,
+      });
+    } catch (error) {
+      console.error("Welcome email failed:", error);
+    }
+
+    return {
+      purpose: OtpPurpose.EMAIL_VERIFICATION,
+      user: result,
+      accessToken,
+      refreshToken,
+    };
   }
 
-  async loginDB(paylaod: ILoging) {
-    const { password, email } = paylaod;
+  async loginDB(payload: ILoging) {
+    const { password, email } = payload;
 
-    const userExits = await prisma.users.findUnique({
-      where: {
-        email,
-      },
+    console.log("[LOGIN 1] Login started");
+
+    const userExists = await prisma.users.findUnique({
+      where: { email: email.trim().toLowerCase() },
       include: {
         studentProfile: {
           select: {
@@ -198,41 +245,52 @@ class AuthService {
       },
     });
 
-    if (!userExits) {
-      throw new Error("This Email not Found Pleace try Again");
+    console.log("[LOGIN 2] User query completed");
+
+    if (!userExists) {
+      throw new Error("This email was not found. Please try again.");
     }
 
-    if (!userExits.password) {
-      throw new Error("User password is not set");
+    if (!userExists.password) {
+      throw new Error("User password is not set.");
     }
 
-    const passwordMatch = await bcrypt.compare(password, userExits.password);
+    console.log("[LOGIN 3] Comparing password");
+
+    const passwordMatch = await bcrypt.compare(password, userExists.password);
+
+    console.log("[LOGIN 4] Password comparison completed");
 
     if (!passwordMatch) {
-      throw new Error("Password Dosenot Match!Pleacce try again");
+      throw new Error("Password does not match. Please try again.");
     }
 
-    const jwtpayload = {
-      id: userExits.id,
-      name: userExits.name,
-      email: userExits.email,
-      role: userExits.role,
-      departmentId: userExits.studentProfile?.departmentId ?? null,
+    const jwtPayload = {
+      id: userExists.id,
+      name: userExists.name,
+      email: userExists.email,
+      role: userExists.role,
     };
 
+    console.log("[LOGIN 5] Creating tokens");
+
     const accessToken = jwtUtils.createToken(
-      jwtpayload,
+      jwtPayload,
       config.accessSecret as string,
       {
         expiresIn: config.jwt_access_Expires,
       } as SignOptions,
     );
+
     const refreshToken = jwtUtils.createToken(
-      jwtpayload,
+      jwtPayload,
       config.refreshSecret as string,
-      { expiresIn: config.jwt_refresh_Expires } as SignOptions,
+      {
+        expiresIn: config.jwt_refresh_Expires,
+      } as SignOptions,
     );
-    console.log("accessToken", accessToken, "refreshToken", refreshToken);
+
+    console.log("[LOGIN 6] Tokens created");
 
     return { accessToken, refreshToken };
   }
@@ -285,7 +343,7 @@ class AuthService {
 
   async updatePasswordDB(payload: IUpdatePasswordPayload) {
     const { email, token, password } = payload;
-    console.log('update password',payload)
+    console.log("update password", payload);
     const userExits = await prisma.users.findUnique({ where: { email } });
 
     if (!userExits) {
@@ -451,31 +509,30 @@ class AuthService {
     };
   }
 
-    async getMeDB(id: string, role: Role) {
-  const result = await prisma.users.findUnique({
-    where: { id },
-    include: {
-      studentProfile:
-        role === Role.STUDENT
-          ? true
-          : false,
+  async getMeDB(id: string, role: Role) {
+    const result = await prisma.users.findUnique({
+      where: { id },
+      include: {
+        studentProfile: role === Role.STUDENT ? {include:{
+          department:true
+        }} : false,
 
-      instructorProfile:
-        role === Role.INSTRUCTOR
-          ? {
-              include: {
-                department: true,
-              },
-            }
-          : false,
-    },
-    omit: {
-      password: true,
-    },
-  });
+        instructorProfile:
+          role === Role.INSTRUCTOR
+            ? {
+                include: {
+                  department: true,
+                },
+              }
+            : false,
+      },
+      omit: {
+        password: true,
+      },
+    });
 
-  return result;
-}
+    return result;
+  }
 }
 
 export default new AuthService();

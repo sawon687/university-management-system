@@ -5,8 +5,8 @@ import { sendResponse } from "../../utils/sendResponse";
 import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
 import config from "../../config";
-import { IUser } from './auth.interface';
-import { Role } from '../../../generated/prisma/enums';
+import { IUser } from "./auth.interface";
+import { Role } from "../../../generated/prisma/enums";
 class AuthController extends BaseController {
   createStudent = this.handle(async (req: Request, res: Response) => {
     const payload = req.body;
@@ -21,65 +21,66 @@ class AuthController extends BaseController {
   });
   verifayAccount = this.handle(async (req: Request, res: Response) => {
     const paylaod = req.body;
-    console.log('payload verayfay reset',paylaod)
-    const result = await authService.verifayAccountDB(paylaod);
+    console.log("payload verayfay reset", paylaod);
+    const { accessToken, refreshToken, user } =
+      await authService.verifayAccountDB(paylaod);
 
-    // if (
-    //   "accessToken" in result &&
-    //   "refreshToken" in result &&
-    //   result.accessToken &&
-    //   result.refreshToken
-    // ) {
-    //   res.cookie("accessToken", result.accessToken, {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite: "none",
-    //     maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
-    //   });
-    //   res.cookie("refreshToken", result.refreshToken, {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite: "none",
-    //     maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
-    //   });
-    // }
-    sendResponse(res, {
-      message: "User Register is successFully",
-      status: statusCode.OK,
-      success: true,
-      data: result,
-    });
-  });
-
-  login = this.handle(async (req: Request, res: Response) => {
-    const payload = req.body;
-    const result = await authService.loginDB(payload);
-
-    if (!result) {
-      throw new Error("User creation failed");
-    }
-    const { accessToken, refreshToken } = result;
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: config.node_env=='development'?false:true,
-      sameSite:config.node_env=="development"?"lax":"none",
+      secure: config.node_env === "development" ? false : true,
+      sameSite: config.node_env === "development" ? "lax" : "none",
       maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-     secure: config.node_env=='development'?false:true,
-      sameSite:config.node_env=="development"?"lax":"none",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 24 hour or 7 day
+      secure: config.node_env === "development" ? false : true,
+      sameSite: config.node_env === "development" ? "lax" : "none",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     });
+
     sendResponse(res, {
+      message: "User Register is successFully",
+      status: statusCode.OK,
       success: true,
-      message: "user login  successfully",
-      status: statusCode.CREATED,
-      data: { accessToken, refreshToken },
+      ...(user && { data: user }),
     });
   });
 
-  
+  login = this.handle(async (req: Request, res: Response) => {
+    console.log("[LOGIN] Controller started");
+    const payload = req.body;
+    const result = await authService.loginDB(payload);
+    console.log("[LOGIN] Service completed");
+
+    if (!result) {
+      throw new Error("User creation failed");
+    }
+    const {accessToken,refreshToken} = result;
+   const isProduction = config.node_env === "production";
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  return sendResponse(res, {
+    success: true,
+    message: "Login successful",
+    status: 200,
+    data: { accessToken, refreshToken },
+  });
+  });
 
   googleLogin = this.handle(async (req: Request, res: Response) => {
     console.log("googleLogin", req.body);
@@ -154,45 +155,50 @@ class AuthController extends BaseController {
     });
   });
 
-    updatePassword = this.handle(async (req: Request, res: Response) => {
-    const paylaod = req.body
+  updatePassword = this.handle(async (req: Request, res: Response) => {
+    const paylaod = req.body;
 
     const result = await authService.updatePasswordDB(paylaod);
 
     sendResponse(res, {
       status: statusCode.OK,
       success: true,
-      message:
-        "Update Password SuccssFully.",
+      message: "Update Password SuccssFully.",
       data: result,
     });
   });
 
+  getMe = this.handle(async (req: Request, res: Response) => {
+    const { id, role } = req.user!;
 
-    getMe = this.handle(async (req: Request, res: Response) => {
-      const {id,role }= req.user!
-  
-      const result = await authService.getMeDB(id, role as Role);
-      sendResponse(res, {
-        message: "profile found",
-        status: statusCode.OK,
-        success: true,
-        data: result,
-      });
+    const result = await authService.getMeDB(id, role as Role);
+    sendResponse(res, {
+      message: "profile found",
+      status: statusCode.OK,
+      success: true,
+      data: result,
     });
+  });
 
-     logout = this.handle(async (req: Request, res: Response) => {
- 
-         res.clearCookie('accessToken')
-         res.clearCookie('refreshToken')
-    
-      sendResponse(res, {
-        message: "User Logged Out Succesfully",
-        status: statusCode.OK,
-        success: true,
-   
-      });
+  logout = this.handle(async (req: Request, res: Response) => {
+    const isProduction = config.node_env === "production";
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
+      path: "/",
+    };
+
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+
+    sendResponse(res, {
+      message: "User Logged Out Successfully",
+      status: statusCode.OK,
+      success: true,
     });
+  });
 }
 
 export default new AuthController();

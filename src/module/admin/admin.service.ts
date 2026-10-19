@@ -103,31 +103,36 @@ class AdminService {
 
   async getAllUserDB(query: Query) {
     const { role, status, department, search } = query;
-    console.log(
-      `role:${role},status:${status},deparmtent:${department} search:${search}`,
-    );
+
+    const departmentNormalization = department?.trim().toUpperCase();
+    const searchNormalization = search?.trim();
+
+    const pageNumber = Math.max(Number(query.page) || 1, 1);
+    const limitNumber = Math.max(Number(query.limit) || 6, 1);
+    const skip = (pageNumber - 1) * limitNumber;
+
     const whereQuery: UsersWhereInput = {};
-    const departmentNormalization = department?.trim() ?? null;
-    const searchNormalization = search?.trim() ?? null;
+
     if (role) {
-      whereQuery.role = role.toLocaleUpperCase() as Role;
+      whereQuery.role = role.toUpperCase() as Role;
     }
 
-    if (status) {
-      whereQuery.userStatus = status.toLocaleUpperCase() as UserStatus;
+    if (status && String(status).toUpperCase() !== "ALL STATUS") {
+      whereQuery.userStatus = status.toUpperCase() as UserStatus;
     }
 
     const userProfile =
-      role === Role.STUDENT
+      role?.toUpperCase() === Role.STUDENT
         ? "studentProfile"
-        : role === Role.INSTRUCTOR
+        : role?.toUpperCase() === Role.INSTRUCTOR
           ? "instructorProfile"
           : null;
 
+    // Department filter
     if (departmentNormalization && userProfile) {
       whereQuery[userProfile] = {
         department: {
-          code: departmentNormalization.toLocaleUpperCase(),
+          code: departmentNormalization,
         },
       };
     } else if (departmentNormalization) {
@@ -135,22 +140,23 @@ class AdminService {
         {
           studentProfile: {
             department: {
-              code: departmentNormalization.toLocaleUpperCase(),
+              code: departmentNormalization,
             },
           },
         },
         {
           instructorProfile: {
             department: {
-              code: departmentNormalization.toLocaleUpperCase(),
+              code: departmentNormalization,
             },
           },
         },
       ];
     }
 
+    // Search filter: name or email
     if (searchNormalization) {
-      whereQuery.OR = [
+      const searchConditions: UsersWhereInput[] = [
         {
           name: {
             contains: searchNormalization,
@@ -164,18 +170,53 @@ class AdminService {
           },
         },
       ];
-    }
-    // if(query.search.tr)
-    console.log("WHERE:", JSON.stringify(whereQuery, null, 2));
-    const result = await prisma.users.findMany({
-      where: whereQuery,
-      include: {
-        instructorProfile: true,
-      },
-    });
-    console.log("result", result);
 
-    return result;
+      // Keep department filtering when search is also provided
+      if (whereQuery.OR) {
+        whereQuery.AND = [{ OR: whereQuery.OR }, { OR: searchConditions }];
+        delete whereQuery.OR;
+      } else {
+        whereQuery.OR = searchConditions;
+      }
+    }
+
+    const [allUsers, totalUsers] = await Promise.all([
+      prisma.users.findMany({
+        where: whereQuery,
+        include: {
+          instructorProfile:{
+            include:{
+              department:true
+            }
+          },
+          studentProfile:{
+             include:{
+              department:true
+             }
+          },
+        },
+        take: limitNumber,
+        skip,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.users.count({
+        where: whereQuery,
+      }),
+    ]);
+
+    const totalPage = Math.ceil(totalUsers / limitNumber);
+
+    return {
+      allUsers,
+      totalUsers,
+      meta: {
+        totalPage,
+        currentPage: pageNumber,
+        limit: limitNumber,
+      },
+    };
   }
   async teachersCreateDB(payload: ITeacher) {
     const { name, email, departmentId, gender } = payload;
@@ -277,7 +318,7 @@ class AdminService {
     if (!id) {
       throw new Error("Application ID is required");
     }
- if (payload.status === "REJECTED" && !payload.rejectionReason?.trim()) {
+    if (payload.status === "REJECTED" && !payload.rejectionReason?.trim()) {
       throw new Error("Rejection reason is required");
     }
 
@@ -286,11 +327,12 @@ class AdminService {
       reviewedBy: payload.adminId,
       rejectionReason:
         payload.status === "REJECTED"
-          ? payload.rejectionReason?.trim()?payload.rejectionReason:null
+          ? payload.rejectionReason?.trim()
+            ? payload.rejectionReason
+            : null
           : null,
     };
 
-   
     const result = await prisma.admissionApplication.update({
       where: { id },
       data: reviewData,
@@ -566,14 +608,15 @@ class AdminService {
   }
 
   async getAllProgram(query: IqueryProgram) {
-    const { search, department, degreeType, page } = query;
-
+    console.log('qeuey sawaon',query)
+    const { search, department,degree, page,status } = query;
+console.log('degreeType',degree)
     const whereProgramCondition: ProgramWhereInput = {};
 
     const searchNormalization = search?.trim() ?? null;
     const departmentNormalization = department?.trim() ?? null;
-    const degreeTypeNormalization = degreeType?.trim() ?? null;
-
+    const degreeTypeNormalization = degree?.trim() ?? null;
+    
     // Search: Program name + Department name
     if (searchNormalization) {
       whereProgramCondition.OR = [
@@ -607,6 +650,10 @@ class AdminService {
         degreeTypeNormalization.toUpperCase() as DegreeType;
     }
 
+    if(status && status==='ACTIVE'|| status==='INACTIVE')
+    {
+       whereProgramCondition.isActive=status==='ACTIVE'?true:false
+    }
     // Pagination
     const limit = 6;
     const currentPage = Number(page) || 1;
@@ -641,19 +688,17 @@ class AdminService {
   }
 
   async getCourseAssignmentDataDB(query: ICourseQuery) {
-    console.log("query", query.departmentId);
     const departmentIdNor = query.departmentId?.trim() || null;
 
     const page = Math.max(Number(query.page) || 1, 1);
     const limit = Math.max(Number(query.limit) || 6, 1);
-
     const skip = (page - 1) * limit;
 
     const whereCoursesCondition: CourseWhereInput[] = [];
     const whereInstructorCondition: UsersWhereInput[] = [];
 
     // Department filter for courses
-    if (departmentIdNor) {
+    if (departmentIdNor && departmentIdNor !== "all") {
       whereCoursesCondition.push({
         departmentId: departmentIdNor,
       });
@@ -661,17 +706,19 @@ class AdminService {
 
     // Course search
     if (query.courseSearch?.trim()) {
+      const search = query.courseSearch.trim();
+
       whereCoursesCondition.push({
         OR: [
           {
             title: {
-              contains: query.courseSearch.trim(),
+              contains: search,
               mode: "insensitive",
             },
           },
           {
             code: {
-              contains: query.courseSearch.trim(),
+              contains: search,
               mode: "insensitive",
             },
           },
@@ -686,7 +733,7 @@ class AdminService {
     });
 
     // Instructor department filter
-    if (departmentIdNor) {
+    if (departmentIdNor && departmentIdNor !== "all") {
       whereInstructorCondition.push({
         instructorProfile: {
           departmentId: departmentIdNor,
@@ -696,17 +743,19 @@ class AdminService {
 
     // Instructor search
     if (query.instructorSearch?.trim()) {
+      const search = query.instructorSearch.trim();
+
       whereInstructorCondition.push({
         OR: [
           {
             name: {
-              contains: query.instructorSearch.trim(),
+              contains: search,
               mode: "insensitive",
             },
           },
           {
             email: {
-              contains: query.instructorSearch?.trim(),
+              contains: search,
               mode: "insensitive",
             },
           },
@@ -714,23 +763,31 @@ class AdminService {
       });
     }
 
+    // Reusable where conditions
+    const courseWhere: CourseWhereInput = {
+      AND: whereCoursesCondition,
+    };
+
+    const instructorWhere: UsersWhereInput = {
+      AND: whereInstructorCondition,
+    };
+
+    // Fetch data
     const [course, instructor, totalCourse] = await Promise.all([
       prisma.course.findMany({
-        where: {
-          AND: whereCoursesCondition,
-        },
+        where: courseWhere,
         include: {
-          department:true,
-          
+          department: true,
         },
         take: limit,
         skip,
+        orderBy: {
+          title: "asc",
+        },
       }),
 
       prisma.users.findMany({
-        where: {
-          AND: whereInstructorCondition,
-        },
+        where: instructorWhere,
         include: {
           instructorProfile: {
             select: {
@@ -742,20 +799,26 @@ class AdminService {
             },
           },
         },
-      }),
-      prisma.course.count({
-        where: {
-          AND: whereCoursesCondition,
+        orderBy: {
+          name: "asc",
         },
       }),
+
+      prisma.course.count({
+        where: courseWhere,
+      }),
     ]);
-    const totalpage = Math.ceil(Number(totalCourse) / Number(query.limit));
+
+    // Pagination metadata
+    const totalPage = Math.ceil(totalCourse / limit);
+
     return {
       course,
       instructor,
       meta: {
-        totalpage,
-        page,
+        total: totalCourse,
+        currentPage: page,
+        totalPage,
         limit,
       },
     };

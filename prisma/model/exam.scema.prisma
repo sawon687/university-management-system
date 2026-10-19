@@ -12,8 +12,7 @@ model Exam {
   semester   Semester @relation(fields: [semesterId], references: [id])
   instructor Users    @relation("InstructorExams", fields: [instructorId], references: [id])
 
-  results Result[]
-
+ 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

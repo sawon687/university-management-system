@@ -6,6 +6,7 @@ import statusCode from "http-status-codes";
 import { prisma } from "../../lib/pirsma";
 import type { AdmissionQuery, ICourseQuery, Query } from "./admin.interface";
 import type { AdmissionStatus, Role } from "../../../generated/prisma/enums";
+import { IqueryProgram } from '../students/students.interface';
 
 class Admin extends BaseController {
   CreateDepartment = this.handle(async (req: Request, res: Response) => {
@@ -22,7 +23,7 @@ class Admin extends BaseController {
   });
 
   getAllDepartment = this.handle(async (req: Request, res: Response) => {
-    const queray = req.query;
+    const queray = req.query as unknown as { search?: string; id?: string };
     const search = queray.search;
     const id = queray.id;
     console.log("search", queray.search);
@@ -58,7 +59,8 @@ class Admin extends BaseController {
     });
   });
   getAllPrograms = this.handle(async (req: Request, res: Response) => {
-    const queray = req.query;
+    const queray = req.query as IqueryProgram;
+    console.log('params',queray)
     const result = await adminService.getAllProgram(queray);
 
     sendResponse(res, {

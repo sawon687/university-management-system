@@ -28,3 +28,19 @@ async function main() {
 }
 
 main();
+
+
+
+const sawon={
+	 semester:'fall 2014',
+	 totalCredit:167,
+	 totalpons:3444.8,
+	 'cgpa':3.25,
+	 'subject':[]
+}
+
+
+const map=new Map<
+	stirng,{
+        
+	}>()

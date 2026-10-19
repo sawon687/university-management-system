@@ -22,6 +22,7 @@ model Course {
   courseAssign     CourseAssignt[]
   exam             Exam[]
   coursReuslt      CourseMarks[]
+  student          StudentSubjectResult[]
 
   @@index([programId])
   @@index([departmentId])

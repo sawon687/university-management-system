@@ -52,6 +52,8 @@ export interface Query {
   status?: UserStatus;
   department?: string;
   search?: string;
+  limit:number,
+  page:number
 }
 
 export interface ICreatePrerequisite {

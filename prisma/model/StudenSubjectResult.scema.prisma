@@ -1,0 +1,22 @@
+model StudentSubjectResult {
+  id         String   @id @default(uuid())
+  studentId  String   
+  semesterId String   
+  courseId   String   
+  
+  grade      String   
+  gradePoint Float    
+
+  // Relations
+  student  Users    @relation("StudentSubjectResults", fields: [studentId], references: [id], onDelete: Cascade)
+  semester Semester @relation(fields: [semesterId], references: [id])
+  course   Course   @relation( fields: [courseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  
+  @@unique([studentId, semesterId, courseId])
+  @@index([studentId, semesterId])
+  @@index([courseId])
+}

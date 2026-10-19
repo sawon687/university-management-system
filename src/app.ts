@@ -16,12 +16,14 @@ import path from "path";
 import helmet from "helmet";
 import cors from "cors";
 import config from "./config";
+import { aiRouter } from "./module/ai/ai.route";
 
 const app: Application = express();
 app.set("trust proxy", 1);
+
 app.use(
   cors({
-    origin: config.appurl,
+    origin: config.frontendUrl,
     credentials: true,
   }),
 );
@@ -58,6 +60,7 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/teacher", teacherRouter);
 app.use("/api/v1/payments/", paymentRouter);
 app.use("/api/v1/user/", UserRoutes);
+app.use("/api/v1/ai", aiRouter);
 app.set("view engine", "ejs");
 app.set("views", path.join(process.cwd(), "src/templates"));
 app.get("/google-login", (req, res) => {

@@ -42,10 +42,11 @@ router.get(
 );
 router.get("/my-enrolement/:id", auth("STUDENT"), studentController.myEnrolement);
 router.get('/my-semester',auth('STUDENT'),studentController.mySemester)
-router.post("/my-gpa", auth("STUDENT"), studentController.mygpa);
+router.get("/my-gpa", auth("STUDENT"), studentController.mygpa);
 router.get(
   "/dashboard",
   auth("STUDENT"),
   studentController.getDasbhoard,
 );
+router.get('/semester-result/:id',auth('STUDENT'),studentController.getStudentSemester)
 export const studentRouter = router;

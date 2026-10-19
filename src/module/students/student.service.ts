@@ -150,15 +150,15 @@ class StudentService {
     return result;
   }
   async getAllProgram(query: IqueryProgram) {
-    const { search, department, degreeType, page, study } = query;
+    const { search, department, degree, page, study } = query;
 
     const whereProgramCondition: ProgramWhereInput = {};
 
     const searchNormalization = search?.trim() ?? null;
     const departmentNormalization = department?.trim() ?? null;
-    const degreeTypeNormalization = degreeType?.trim() ?? null;
+    const degreeTypeNormalization = degree?.trim() ?? null;
     const studyNor = study?.trim() ?? null;
-
+    console.log("deaprmten", departmentNormalization);
     // Search: Program name + Department name
     if (searchNormalization) {
       whereProgramCondition.OR = [
@@ -197,12 +197,12 @@ class StudentService {
 
     // semester type
 
-    if (studyNor && study !== "All Study") {
+    if (studyNor && study !== "All") {
       whereProgramCondition.semesterType = studyNor as SemesterType;
     }
     // Degree type filter
-    console.log("degree", degreeType);
-    if (degreeTypeNormalization && degreeTypeNormalization !== "All Degree") {
+
+    if (degreeTypeNormalization && degreeTypeNormalization !== "All") {
       whereProgramCondition.degreeType = degreeTypeNormalization as DegreeType;
     }
 
@@ -229,13 +229,13 @@ class StudentService {
       }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPage = Math.ceil(total / limit);
 
     return {
       programs,
       meta: {
         total,
-        totalPages,
+        totalPage,
         currentPage,
         limit,
       },
@@ -346,15 +346,12 @@ class StudentService {
 
         //  Check every prerequisite
         for (const prerequisite of prerequisites) {
-          const prerequisiteResult = await tx.result.findFirst({
+          const prerequisiteResult = await tx.studentSubjectResult.findFirst({
             where: {
               studentId,
-              exam: {
-                courseId: prerequisite.prerequisiteCourseId,
-              },
+              courseId: prerequisite.prerequisiteCourseId,
             },
             select: {
-              grade: true,
               gradePoint: true,
             },
           });
@@ -365,7 +362,7 @@ class StudentService {
             );
           }
 
-          if (prerequisiteResult.grade === "F") {
+          if (Number(prerequisiteResult.gradePoint) === 0) {
             throw new Error(
               `You failed prerequisite course ${prerequisite.prerequisiteCourse.code}. You cannot enroll in this course`,
             );
@@ -451,23 +448,23 @@ class StudentService {
     return result;
   }
   async GetfeeInstalmentDB(userId: string, semesterId: string) {
-    if(!semesterId){
-      throw new Error('Pleace selectd your semester')
+    if (!semesterId) {
+      throw new Error("Pleace selectd your semester");
     }
 
-    const result = await prisma.fee.findUnique({ where:{
-      studentId_semesterId:{
-        studentId:userId,
-        semesterId
-      }
-    } });
+    const result = await prisma.fee.findUnique({
+      where: {
+        studentId_semesterId: {
+          studentId: userId,
+          semesterId,
+        },
+      },
+    });
 
     return result;
   }
 
-  async myEnrolementDB(id: string,semesterId:string) {
-  
-
+  async myEnrolementDB(id: string, semesterId: string) {
     const result = await prisma.enrollment.findUnique({
       where: {
         studentId_semesterId: {
@@ -499,13 +496,12 @@ class StudentService {
       totalCredit,
     };
   }
-  async mySemesterDB(userId: string, ) {
+  async mySemesterDB(userId: string) {
     const result = await prisma.semester.findMany({
       where: {
         enrollments: {
           some: {
             studentId: userId,
-         
           },
         },
       },
@@ -514,63 +510,178 @@ class StudentService {
     return result;
   }
 
-  async myCgpaDB(payload: Omit<IStudentEnrolement, "Enrolementcourses">) {
-    const { studentId, semesterId } = payload;
 
-    const results = await prisma.result.findMany({
+async getSemesterResult(payload: {
+  studentId: string;
+  semesterId: string;
+}) {
+  const { studentId, semesterId } = payload;
+
+  const [enrollment, results] = await Promise.all([
+
+    prisma.enrollment.findUnique({
       where: {
-        studentId,
-        exam: {
+        studentId_semesterId: {
+          studentId,
           semesterId,
         },
       },
       select: {
-        gradePoint: true,
-        exam: {
+        semester: {
+          select: {
+            id: true,
+            name: true,
+            year: true,
+          },
+        },
+        Enrolementcourses: {
           select: {
             course: {
               select: {
+                id: true,
+                title: true,
+                code: true,
                 credit: true,
               },
             },
           },
         },
       },
-    });
+    }),
 
-    const totalCredits = results.reduce(
-      (sum, result) => sum + Number(result.exam.course.credit),
-      0,
-    );
 
-    const totalPoints = results.reduce(
-      (sum, result) =>
-        sum + Number(result.gradePoint) * Number(result.exam.course.credit),
-      0,
-    );
-
-    const gpa =
-      totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
-
-    const semesterResult = await prisma.gPAResult.upsert({
+    prisma.studentSubjectResult.findMany({
       where: {
-        studentId_semesterId: { studentId, semesterId },
-      },
-      update: {
-        totalPoints,
-        totalCredits,
-        gpa,
-      },
-      create: {
+        studentId,
         semesterId,
-        totalPoints,
-        totalCredits,
-        gpa,
+      },
+      select: {
+        courseId: true,
+        grade: true,
+        gradePoint: true,
+      },
+    }),
+  ]);
+
+  if (!enrollment) {
+    return {
+      studentId,
+      semesterId,
+      semester: null,
+      gpa: 0,
+      totalCredits: 0,
+      totalPoints: 0,
+      totalSubjects: 0,
+      subjects: [],
+    };
+  }
+
+
+  const resultMap = new Map(
+    results.map((result) => [
+      result.courseId,
+      {
+        grade: result.grade,
+        gradePoint: Number(result.gradePoint),
+      },
+    ]),
+  );
+
+  let totalCredits = 0;
+  let totalPoints = 0;
+
+  const subjects = enrollment.Enrolementcourses.map(({ course }) => {
+    const credit = Number(course.credit);
+    const result = resultMap.get(course.id);
+
+    const grade = result?.grade ?? null;
+
+    const gradePoint =
+      result && Number.isFinite(result.gradePoint)
+        ? result.gradePoint
+        : null;
+
+ 
+    if (
+      gradePoint !== null &&
+      Number.isFinite(credit) &&
+      credit > 0
+    ) {
+      totalCredits += credit;
+      totalPoints += credit * gradePoint;
+    }
+
+    return {
+      courseId: course.id,
+      courseName: course.title,
+      courseCode: course.code,
+      credit,
+      grade,
+      gradePoint,
+    };
+  });
+
+  const gpa =
+    totalCredits > 0
+      ? Number((totalPoints / totalCredits).toFixed(2))
+      : 0;
+
+  return {
+    studentId,
+    semesterId,
+    semester: enrollment.semester,
+    gpa,
+    totalCredits,
+    totalPoints: Number(totalPoints.toFixed(2)),
+    totalSubjects: subjects.length,
+    subjects,
+  };
+}
+
+  async getMyCgpa(studentId: string) {
+    const results = await prisma.studentSubjectResult.findMany({
+      where: {
         studentId,
       },
+      select: {
+        gradePoint: true,
+        course: {
+          select: {
+            credit: true,
+          },
+        },
+      },
     });
-    return semesterResult;
+    console.log('gap result',results)
+
+    let totalCredits = 0;
+    let totalPoints = 0;
+
+    for (const result of results) {
+      const credit = Number(result.course.credit);
+      const gradePoint = Number(result.gradePoint);
+
+      if (
+        Number.isFinite(credit) &&
+        Number.isFinite(gradePoint) &&
+        credit > 0
+      ) {
+        totalCredits += credit;
+        totalPoints += credit * gradePoint;
+      }
+    }
+
+    const cgpa =
+      totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : 0;
+
+    return {
+      studentId,
+      cgpa,
+      totalCredits,
+      totalPoints: Number(totalPoints.toFixed(2)),
+    };
   }
+
   async getAllCourseDB(query: ICourseQuery) {
     const {
       search,
@@ -679,175 +790,167 @@ class StudentService {
     };
   }
 
+  async getStudentDashboardDB(studentId: string) {
+    if (!studentId) {
+      throw new Error("Student ID is required");
+    }
 
-async getStudentDashboardDB(studentId: string) {
-  if (!studentId) {
-    throw new Error("Student ID is required");
-  }
-
-  const [
-    student,
-    studentProfile,
-    admissionApplication,
-    enrollments,
-    gpaResults,
-    fees,
-    totalResults,
-  ] = await Promise.all([
-    // 1. Student basic information + profile photo
-    prisma.users.findUnique({
-      where: {
-        id: studentId,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        studentProfile: {
-          select: {
-            profilePhoto: true,
+    const [
+      student,
+      studentProfile,
+      admissionApplication,
+      enrollments,
+      gpaResults,
+      fees,
+      totalResults,
+    ] = await Promise.all([
+      // 1. Student basic information + profile photo
+      prisma.users.findUnique({
+        where: {
+          id: studentId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          studentProfile: {
+            select: {
+              profilePhoto: true,
+            },
           },
         },
-      },
-    }),
+      }),
 
-    // 2. Student profile details
-    prisma.studentProfile.findUnique({
-      where: {
-        studentId,
-      },
-    }),
+      // 2. Student profile details
+      prisma.studentProfile.findUnique({
+        where: {
+          studentId,
+        },
+      }),
 
-    // 3. Admission application
-    prisma.admissionApplication.findUnique({
-      where: {
-        userId: studentId,
-      },
-      include: {
-        program: {
-          include: {
-            department: true,
+      // 3. Admission application
+      prisma.admissionApplication.findUnique({
+        where: {
+          userId: studentId,
+        },
+        include: {
+          program: {
+            include: {
+              department: true,
+            },
           },
         },
-      },
-    }),
+      }),
 
-    // 4. Student enrollments
-    prisma.enrollment.findMany({
-      where: {
-        studentId,
-      },
-      include: {
-        semester: true,
-        Enrolementcourses: {
-          include: {
-            course: {
-              select: {
-                id: true,
-                title: true,
-                code: true,
-                credit: true,
+      // 4. Student enrollments
+      prisma.enrollment.findMany({
+        where: {
+          studentId,
+        },
+        include: {
+          semester: true,
+          Enrolementcourses: {
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  title: true,
+                  code: true,
+                  credit: true,
+                },
               },
             },
           },
         },
-      },
-    }),
+      }),
 
-    // 5. GPA results
-    prisma.gPAResult.findMany({
-      where: {
-        studentId,
-      },
-      include: {
-        semester: true,
-      },
-    }),
+      // 5. GPA results
+      prisma.gPAResult.findMany({
+        where: {
+          studentId,
+        },
+        include: {
+          semester: true,
+        },
+      }),
 
-    // 6. Student fees
-    prisma.fee.findMany({
-      where: {
-        studentId,
-      },
-    }),
+      // 6. Student fees
+      prisma.fee.findMany({
+        where: {
+          studentId,
+        },
+      }),
 
-    // 7. Total result count
-    prisma.result.count({
-      where: {
-        studentId,
-      },
-    }),
-  ]);
+      // 7. Total result count
+      prisma.studentSubjectResult.count({
+        where: {
+          studentId,
+        },
+      }),
+    ]);
 
-  if (!student) {
-    throw new Error("Student not found");
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    // Total enrolled courses
+    const totalCourses = enrollments.reduce(
+      (total, enrollment) => total + enrollment.Enrolementcourses.length,
+      0,
+    );
+
+    // Total credits
+    const totalCredits = enrollments.reduce(
+      (total, enrollment) =>
+        total +
+        enrollment.Enrolementcourses.reduce(
+          (courseTotal, item) => courseTotal + Number(item.course.credit),
+          0,
+        ),
+      0,
+    );
+
+    // Total fees
+    const totalFees = fees.reduce(
+      (total, fee) => total + Number(fee.totalAmount),
+      0,
+    );
+
+    // Total paid amount
+    const totalPaid = fees.reduce(
+      (total, fee) =>
+        total +
+        Math.max(0, Number(fee.totalAmount) - Number(fee.remainingAmount)),
+      0,
+    );
+
+    // Total outstanding amount
+    const totalDue = fees.reduce(
+      (total, fee) => total + Number(fee.remainingAmount),
+      0,
+    );
+
+    return {
+      student,
+      studentProfile,
+      admissionApplication,
+
+      statistics: {
+        enrolledSemesters: enrollments.length,
+        totalCourses,
+        totalCredits,
+        totalResults,
+        totalFees,
+        totalPaid,
+        totalDue,
+      },
+
+      enrollments,
+      gpaResults,
+      fees,
+    };
   }
-
-  // Total enrolled courses
-  const totalCourses = enrollments.reduce(
-    (total, enrollment) =>
-      total + enrollment.Enrolementcourses.length,
-    0,
-  );
-
-  // Total credits
-  const totalCredits = enrollments.reduce(
-    (total, enrollment) =>
-      total +
-      enrollment.Enrolementcourses.reduce(
-        (courseTotal, item) =>
-          courseTotal + Number(item.course.credit),
-        0,
-      ),
-    0,
-  );
-
-  // Total fees
-  const totalFees = fees.reduce(
-    (total, fee) => total + Number(fee.totalAmount),
-    0,
-  );
-
-  // Total paid amount
-  const totalPaid = fees.reduce(
-    (total, fee) =>
-      total +
-      Math.max(
-        0,
-        Number(fee.totalAmount) - Number(fee.remainingAmount),
-      ),
-    0,
-  );
-
-  // Total outstanding amount
-  const totalDue = fees.reduce(
-    (total, fee) => total + Number(fee.remainingAmount),
-    0,
-  );
-
-  return {
-    student,
-    studentProfile,
-    admissionApplication,
-
-    statistics: {
-      enrolledSemesters: enrollments.length,
-      totalCourses,
-      totalCredits,
-      totalResults,
-      totalFees,
-      totalPaid,
-      totalDue,
-    },
-
-    enrollments,
-    gpaResults,
-    fees,
-  };
-}
-
-
 }
 
 export default new StudentService();

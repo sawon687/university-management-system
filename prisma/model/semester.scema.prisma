@@ -15,6 +15,7 @@ model Semester {
   exam         Exam[]
   gpaResult    GPAResult[]
   courseResult CourseMarks[]
+  studentResult  StudentSubjectResult[] 
 
   @@unique([name, year])
 }

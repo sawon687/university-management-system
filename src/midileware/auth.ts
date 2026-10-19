@@ -19,7 +19,7 @@ declare global {
         name: string;
         role: string;
         id: string;
-        departmentId: string;
+        
       };
     }
   }
@@ -73,7 +73,7 @@ export const auth = (...requriedRoles: Role[]) => {
         name,
         id,
         role,
-        departmentId,
+ 
       };
       next();
     } catch (error) {

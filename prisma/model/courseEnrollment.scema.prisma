@@ -9,4 +9,5 @@ model CourseEnrollment {
 
   @@unique([enrollmentId, courseId])
   @@index([courseId])
+
 }

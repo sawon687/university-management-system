@@ -197,159 +197,198 @@ class Teachers {
     return result;
   }
 
-  async courseMarks(payload: ICourseMarks) {
-    const {
-      studentId,
-      courseId,
-      semesterId,
-      attendanceMarks,
-      assignmentMarks,
-      midMarks,
-      finalExamMarks,
-    } = payload;
+async createStudentSubjectResult(payload: ICourseMarks) {
+  const {
+    studentId,
+    courseId,
+    semesterId,
+    attendanceMarks,
+    assignmentMarks,
+    midMarks,
+    finalExamMarks,
+  } = payload;
 
-    // Convert marks to number
-    const attendance = Number(attendanceMarks);
-    const assignment = Number(assignmentMarks);
-    const mid = Number(midMarks);
-    const finalExam = Number(finalExamMarks);
+  const attendance = Number(attendanceMarks);
+  const assignment = Number(assignmentMarks);
+  const mid = Number(midMarks);
+  const finalExam = Number(finalExamMarks);
 
-    // Check if marks already exist
-    const existsMarksStudent = await prisma.courseMarks.findUnique({
-      where: {
-        studentId_courseId_semesterId: {
-          studentId,
-          courseId,
-          semesterId,
-        },
-      },
-    });
+  // Validate marks
+  const marks = [attendance, assignment, mid, finalExam];
 
-    if (existsMarksStudent) {
-      throw new Error(
-        "This student already has marks for this course and semester",
-      );
-    }
-
-    // Find MIDTERM exam
-    const exitExamMidMarks = await prisma.exam.findUnique({
-      where: {
-        courseId_semesterId_examType: {
-          courseId,
-          semesterId,
-          examType: ExamType.MIDTERM,
-        },
-      },
-    });
-
-    if (!exitExamMidMarks) {
-      throw new Error("Midterm exam not found for this course and semester");
-    }
-
-    // Validate MIDTERM marks
-    if (mid > exitExamMidMarks.totalMarks) {
-      throw new Error(
-        `Midterm marks cannot exceed ${exitExamMidMarks.totalMarks}`,
-      );
-    }
-
-    // Find FINAL exam
-    const exitExamFinalMarks = await prisma.exam.findUnique({
-      where: {
-        courseId_semesterId_examType: {
-          courseId,
-          semesterId,
-          examType: ExamType.FINAL,
-        },
-      },
-    });
-
-    if (!exitExamFinalMarks) {
-      throw new Error("Final exam not found for this course and semester");
-    }
-
-    // Validate FINAL marks
-    if (finalExam > exitExamFinalMarks.totalMarks) {
-      throw new Error(
-        `Final exam marks cannot exceed ${exitExamFinalMarks.totalMarks}`,
-      );
-    }
-
-    // Calculate total marks
-    const totalMarks = attendance + assignment + mid + finalExam;
-
-    // Calculate grade and grade point
-    let grade: string;
-    let gradePoint: number;
-
-    if (totalMarks >= 80) {
-      grade = "A+";
-      gradePoint = 4.0;
-    } else if (totalMarks >= 75) {
-      grade = "A";
-      gradePoint = 3.75;
-    } else if (totalMarks >= 70) {
-      grade = "A-";
-      gradePoint = 3.5;
-    } else if (totalMarks >= 65) {
-      grade = "B+";
-      gradePoint = 3.25;
-    } else if (totalMarks >= 60) {
-      grade = "B";
-      gradePoint = 3.0;
-    } else if (totalMarks >= 55) {
-      grade = "B-";
-      gradePoint = 2.75;
-    } else if (totalMarks >= 50) {
-      grade = "C+";
-      gradePoint = 2.5;
-    } else if (totalMarks >= 45) {
-      grade = "C";
-      gradePoint = 2.25;
-    } else if (totalMarks >= 40) {
-      grade = "D";
-      gradePoint = 2.0;
-    } else {
-      grade = "F";
-      gradePoint = 0;
-    }
-
-    // Create CourseMarks + Result together
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Create CourseMarks
-      const courseMarks = await tx.courseMarks.create({
-        data: {
-          studentId,
-          courseId,
-          semesterId,
-          attendanceMarks: attendance,
-          assignmentMarks: assignment,
-          midMarks: mid,
-          finalExamMarks: finalExam,
-        },
-      });
-
-      // 2. Create Result using FINAL exam ID
-      const finalResult = await tx.result.create({
-        data: {
-          studentId,
-          totalMarks,
-          grade,
-          gradePoint,
-          examId: exitExamFinalMarks.id,
-        },
-      });
-
-      return {
-        courseMarks,
-        result: finalResult,
-      };
-    });
-
-    return result;
+  if (
+    marks.some(
+      (mark) => !Number.isFinite(mark) || mark < 0,
+    )
+  ) {
+    throw new Error("Marks must be valid non-negative numbers");
   }
 
+  // Validate MIDTERM marks
+  const exitExamMidMarks = await prisma.exam.findUnique({
+    where: {
+      courseId_semesterId_examType: {
+        courseId,
+        semesterId,
+        examType: ExamType.MIDTERM,
+      },
+    },
+  });
 
+  if (exitExamMidMarks && mid > Number(exitExamMidMarks.totalMarks)) {
+    throw new Error(
+      `Midterm marks cannot exceed ${exitExamMidMarks.totalMarks}`,
+    );
+  }
+
+  // Validate FINAL marks
+  const exitExamFinalMarks = await prisma.exam.findUnique({
+    where: {
+      courseId_semesterId_examType: {
+        courseId,
+        semesterId,
+        examType: ExamType.FINAL,
+      },
+    },
+  });
+
+  if (
+    exitExamFinalMarks &&
+    finalExam > Number(exitExamFinalMarks.totalMarks)
+  ) {
+    throw new Error(
+      `Final exam marks cannot exceed ${exitExamFinalMarks.totalMarks}`,
+    );
+  }
+
+  // Calculate total marks
+  const totalMarks = attendance + assignment + mid + finalExam;
+
+  // Calculate grade and grade point
+  let grade: string;
+  let gradePoint: number;
+
+  if (totalMarks >= 80) {
+    grade = "A+";
+    gradePoint = 4.0;
+  } else if (totalMarks >= 75) {
+    grade = "A";
+    gradePoint = 3.75;
+  } else if (totalMarks >= 70) {
+    grade = "A-";
+    gradePoint = 3.5;
+  } else if (totalMarks >= 65) {
+    grade = "B+";
+    gradePoint = 3.25;
+  } else if (totalMarks >= 60) {
+    grade = "B";
+    gradePoint = 3.0;
+  } else if (totalMarks >= 55) {
+    grade = "B-";
+    gradePoint = 2.75;
+  } else if (totalMarks >= 50) {
+    grade = "C+";
+    gradePoint = 2.5;
+  } else if (totalMarks >= 45) {
+    grade = "C";
+    gradePoint = 2.25;
+  } else if (totalMarks >= 40) {
+    grade = "D";
+    gradePoint = 2.0;
+  } else {
+    grade = "F";
+    gradePoint = 0;
+  }
+
+  // Create or update subject result
+  const subjectResult = await prisma.studentSubjectResult.upsert({
+    where: {
+      studentId_semesterId_courseId: {
+        studentId,
+        semesterId,
+        courseId,
+      },
+    },
+    update: {
+      grade,
+      gradePoint,
+    },
+    create: {
+      studentId,
+      semesterId,
+      courseId,
+      grade,
+      gradePoint,
+    },
+  });
+
+  // Recalculate semester GPA
+  const results = await prisma.studentSubjectResult.findMany({
+    where: {
+      studentId,
+      semesterId,
+    },
+    select: {
+      gradePoint: true,
+      course: {
+        select: {
+          credit: true,
+        },
+      },
+    },
+  });
+
+  const { totalCredits, totalPoints } = results.reduce(
+    (acc, result) => {
+      const credit = Number(result.course.credit);
+      const point = Number(result.gradePoint);
+
+      if (
+        Number.isFinite(credit) &&
+        Number.isFinite(point) &&
+        credit > 0
+      ) {
+        acc.totalCredits += credit;
+        acc.totalPoints += credit * point;
+      }
+
+      return acc;
+    },
+    {
+      totalCredits: 0,
+      totalPoints: 0,
+    },
+  );
+
+  const gpa =
+    totalCredits > 0
+      ? Number((totalPoints / totalCredits).toFixed(2))
+      : 0;
+
+  // Create or update semester GPA
+  const semesterGPA = await prisma.gPAResult.upsert({
+    where: {
+      studentId_semesterId: {
+        studentId,
+        semesterId,
+      },
+    },
+    update: {
+      totalCredits,
+      totalPoints,
+      gpa,
+    },
+    create: {
+      studentId,
+      semesterId,
+      totalCredits,
+      totalPoints,
+      gpa,
+    },
+  });
+
+ 
+}
 
   
 async instructorDashboardStatsDB(instructorId: string) {

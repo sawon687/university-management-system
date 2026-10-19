@@ -58,7 +58,7 @@ class StudentController extends BaseController {
   });
 
   getAllProgramg = this.handle(async (req: Request, res: Response) => {
-    const queray = req.query;
+    const queray = req.query as unknown as IqueryProgram;
     console.log("CONTROLLER QUERY:", req.query);
     const result = await studentService.getAllProgram(queray);
 
@@ -124,11 +124,11 @@ class StudentController extends BaseController {
 
   myEnrolement = this.handle(async (req: Request, res: Response) => {
     const userId = req.user?.id as string;
-    const parmas = req.params
-    const semeterId=parmas.id as string
-  
-    const result = await studentService.myEnrolementDB(userId,semeterId);
-     console.log('result cornrses',result)
+    const parmas = req.params;
+    const semeterId = parmas.id as string;
+
+    const result = await studentService.myEnrolementDB(userId, semeterId);
+    console.log("result cornrses", result);
     sendResponse(res, {
       message: "get all enrolement",
       status: statusCode.OK,
@@ -152,13 +152,9 @@ class StudentController extends BaseController {
 
   mygpa = this.handle(async (req: Request, res: Response) => {
     const userId = req.user?.id as string;
-    const body = req.body;
-    const paylaod = {
-      ...body,
-      studentId: userId,
-    };
-    const result = await studentService.myCgpaDB(paylaod);
 
+    const result = await studentService.getMyCgpa(userId);
+console.log('gpa result',result)
     sendResponse(res, {
       message: "get all enrolement",
       status: statusCode.OK,
@@ -168,40 +164,54 @@ class StudentController extends BaseController {
   });
 
   getAllcourses = this.handle(async (req: Request, res: Response) => {
-    const departmentId = req.user?.departmentId as string;
-    const query = req.query;
-    const paylaod = {
-      ...query,
-      departmentId,
-    };
-    console.log("deparment", departmentId);
+    // const departmentId = req.user
+    // const query = req.query;
+    // const paylaod = {
+    //   ...query,
+    //   departmentId,
+    // };
+    // console.log("deparment", departmentId);
 
-    const result = await studentService.getAllCourseDB(paylaod);
+    // const result = await studentService.getAllCourseDB(paylaod);
 
     sendResponse(res, {
       message: "get all  courses found",
       status: statusCode.OK,
       success: true,
-      data: result,
+      // data: result,
     });
   });
 
   getDasbhoard = this.handle(async (req: Request, res: Response) => {
-   const studentId = (req as any).user.id;
+    const studentId = (req as any).user.id;
 
-    const result =
-      await studentService.getStudentDashboardDB(studentId);
+    const result = await studentService.getStudentDashboardDB(studentId);
 
     res.status(200).json({
       success: true,
       message: "Student dashboard retrieved successfully",
       data: result,
+    });
   });
-})
+
+  getStudentSemester = this.handle(async (req: Request, res: Response) => {
+    const studentId = req?.user?.id as string;
+    const semesterId = req.params.id;
+    if (typeof semesterId !== "string") {
+      throw new Error("Semester ID is required");
+    }
+    const payload = {
+      studentId,
+      semesterId,
+    };
+    const result = await studentService.getSemesterResult(payload);
+
+    res.status(200).json({
+      success: true,
+      message: "semester result retry success full",
+      data: result,
+    });
+  });
 }
 
 export default new StudentController();
-
-
- 
-    

@@ -16,9 +16,10 @@ export interface IAdmissionApplication {
 export interface IqueryProgram {
   search?: string;
   department?: string;
-  degreeType?: "BSC" | "MSC" | "BA" | "BBA" | "MBA";
+  degree?: "BSC" | "MSC" | "BA" | "BBA" | "MBA";
   page?: string;
   study?:string
+  status?:'ACTIVE'|'INACTIVE'
 }
 export interface IEnrolementCorse {
   enrollmentId: string;

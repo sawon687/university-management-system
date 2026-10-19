@@ -12,7 +12,7 @@ model Users {
   studentProfile    StudentProfile?       @relation("studentProfile")
   instructorProfile InstructorProfile?    @relation("instructorProfile")
   googleId          String?
-  isEnrolled        Boolean?        
+  isEnrolled        Boolean?
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   payments          Payment[]
@@ -20,11 +20,11 @@ model Users {
   courseAssignments CourseAssignt[]
   fees              Fee[]
   instructorExams   Exam[]                @relation("InstructorExams")
-  studentResults    Result[]              @relation("StudentResults")
   gpaResult         GPAResult[]
   corseResult       CourseMarks[]         @relation("studentCourseResult")
   enrolledment      Enrollment[]
   auditLog          AuditLog[]
-  deletedAt DateTime? 
-  isDeleted Boolean @default(false)
+  studentResult     StudentSubjectResult[] @relation("StudentSubjectResults")
+  deletedAt         DateTime?
+  isDeleted         Boolean               @default(false)
 }

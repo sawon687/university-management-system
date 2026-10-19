@@ -41,7 +41,7 @@ router.post(
 router.get(
   "/dashboard-stats",
   auth("INSTRUCTOR"),
-  teachersController.instructorDashboardStats,
+  teachersController.instructorDashboardStats
 );
 
 export const teacherRouter = router;
